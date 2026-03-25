@@ -1,3 +1,4 @@
+import { roleList } from "@/modules/admin/ui/config/auth/role.user";
 import { z } from "zod";
 
 export const loginSchema = z.object({
@@ -26,8 +27,15 @@ export const resetPasswordSchema = z
     path: ["confirmPassword"],
   });
 
+export const roleEnum = z.enum(roleList);
+
+export const addUserSchema = registerSchema.extend({
+  role: roleEnum,
+});
+
 // Type auth form
 export type LoginFormValues = z.infer<typeof loginSchema>;
 export type RegisterFormValues = z.infer<typeof registerSchema>;
 export type ResetPasswordFormValues = z.infer<typeof resetPasswordSchema>;
 export type ForgotPasswordFormValues = z.infer<typeof forgotPasswordSchema>;
+export type AddUserFormValues = z.infer<typeof addUserSchema>;

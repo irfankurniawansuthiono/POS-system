@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { AlertTriangle, Eye, EyeOff } from "lucide-react";
+import { AlertTriangle, Check, Eye, EyeOff } from "lucide-react";
 
 import { Input } from "@/components/ui/input";
 import { cn, getPasswordRules, getPasswordStrength } from "@/lib/utils";
@@ -109,7 +109,7 @@ const RuleItem = ({ valid, text }: { valid: boolean; text: string }) => (
       valid ? "text-green-600" : "text-muted-foreground",
     )}
   >
-    <span>{valid ? "✔" : "•"}</span>
+    <span>{valid ? <Check size={15} />: <AlertTriangle size={15} />}</span>
     {text}
   </li>
 );
