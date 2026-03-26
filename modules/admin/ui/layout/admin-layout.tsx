@@ -14,11 +14,11 @@ export default async function AdminLayout({
   return (
     <SidebarProvider defaultOpen={defaultOpen}>
       <AppSidebar />
-      <SidebarInset>
+      <SidebarInset className="min-w-0">
         <Header />
-        {/* page main content */}
-        {children}
-        {/* page main content ends */}
+          {/* page main content */}
+          {children}
+          {/* page main content ends */}
       </SidebarInset>
     </SidebarProvider>
   );

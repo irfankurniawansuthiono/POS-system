@@ -20,6 +20,7 @@ export const userRouter = createTRPCRouter({
       return res.user;
     }),
   list: adminProcedure.query(async ({ ctx }) => {
-    return await ctx.db.user.findMany();
+    const users = (await ctx.db.user.findMany()).reverse();
+    return users;
   }),
 });

@@ -34,12 +34,14 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { AddUserFormValues, addUserSchema } from "@/lib/form-schema";
-import { useMutation } from "@tanstack/react-query";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { useTRPC } from "@/trpc/client";
 import { safeZodResolver } from "@/lib/zod";
 import { roleList } from "@/modules/admin/ui/config/auth/role.user";
 export default function AddUsers() {
   const [error, setError] = useState<string | undefined>(undefined);
+  const [dialogOpen, setDialogOpen] = useState(false);
+  const queryClient = useQueryClient();
   const form = useForm<AddUserFormValues>({
     resolver: safeZodResolver(addUserSchema),
     mode: "onSubmit",
@@ -56,8 +58,10 @@ export default function AddUsers() {
   const createUserMutation = useMutation(
     trpc.user.create.mutationOptions({
       onSuccess: () => {
-        // queryClient.invalidateQueries();
+        queryClient.invalidateQueries(trpc.user.list.queryOptions());
         form.reset();
+        setDialogOpen(false);
+        setError(undefined);
       },
       onError: (err) => {
         setError(err.message);
@@ -69,7 +73,7 @@ export default function AddUsers() {
     createUserMutation.mutate(data);
   };
   return (
-    <Dialog>
+    <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
       <DialogTrigger asChild>
         <ButtonWithIcon startIcon={<UserPlus />} variant="default">
           Add
@@ -192,7 +196,7 @@ export default function AddUsers() {
             />
             <DialogFooter>
               <DialogClose asChild>
-                <Button variant="outline">Cancel</Button>
+                <Button variant="outline" className="select-none cursor-pointer">Cancel</Button>
               </DialogClose>
               <ButtonWithIcon
                 type="submit"

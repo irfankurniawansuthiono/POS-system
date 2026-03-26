@@ -1,21 +1,25 @@
 import PageContainer from "@/components/custom/page-container";
-import AddUsers from "@/modules/admin/ui/components/users/button/AddUsers";
+import AddUsers from "@/modules/admin/ui/components/users/button/add-users";
+import UsersDataTable from "@/modules/admin/ui/components/users/user-data-table";
 import { Metadata } from "next";
 
 export const metadata: Metadata = {
-  title: "Dashboard",
-  description: "Dashboard",
+  title: "Users",
+  description: "Manage user accounts in this store app",
   robots: { index: false, follow: false },
 };
 
 export default function UsersPage() {
+  
+  
   return (
     <PageContainer
+      scrollable={false}
       pageTitle="Users"
       pageDescription="Manage user accounts here"
       pageHeaderAction={<AddUsers/>}
     >
-      Users
+        <UsersDataTable/>
     </PageContainer>
   );
 }
