@@ -84,7 +84,6 @@ const columns = (page: number, limit: number): ColumnDef<User>[] => [
     cell: ({ row }) => {
       return (
         <div className="flex gap-2">
-          <DeleteUser id={row.original.id}/>
           <EditUser data={{
             id: row.original.id,
             name: row.original.name!,
@@ -92,6 +91,7 @@ const columns = (page: number, limit: number): ColumnDef<User>[] => [
             role: row.original.role!
           }} />
           <ResetPasswordUser id={row.original.id} />
+          <DeleteUser id={row.original.id}/>
         </div>
       )
     },

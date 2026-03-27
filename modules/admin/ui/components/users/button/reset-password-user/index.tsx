@@ -26,22 +26,22 @@ import { useState } from "react";
 import { PasswordInput } from "@/components/custom/password-input";
 import { Spinner } from "@/components/ui/spinner";
 import {
+  ResetPasswordAdminFormValues,
   ResetPasswordFormValues,
   resetPasswordSchema,
 } from "@/lib/form-schema";
-import {  useQueryClient } from "@tanstack/react-query";
+import {  useMutation, useQueryClient } from "@tanstack/react-query";
 import { useTRPC } from "@/trpc/client";
 import { safeZodResolver } from "@/lib/zod";
-import { admin } from "@/lib/auth-client";
+import { appToast } from "@/components/custom/app-toast";
 
 export default function ResetPasswordUser({ id }: { id: string }) {
   const [error, setError] = useState<string | undefined>(undefined);
-  const [loading, setLoading] = useState(false);
   const [dialogOpen, setDialogOpen] = useState(false);
   const queryClient = useQueryClient();
   const trpc = useTRPC();
 
-  const form = useForm<ResetPasswordFormValues>({
+  const form = useForm<ResetPasswordAdminFormValues>({
     resolver: safeZodResolver(resetPasswordSchema),
     mode: "onSubmit",
     shouldFocusError: true,
@@ -50,24 +50,28 @@ export default function ResetPasswordUser({ id }: { id: string }) {
       confirmPassword: "",
     },
   });
-
+const resetPasswordMutation = useMutation(
+      trpc.user.resetPassword.mutationOptions({
+       onSuccess: () => {
+        setDialogOpen(false);
+        setError(undefined);
+        queryClient.invalidateQueries(trpc.user.get.queryFilter());
+        form.reset();
+        appToast.success("Password reset successfully!");
+       },
+       onError: (error) => {
+        setError(error.message);
+        appToast.error("Something went wrong!");
+       }
+      })
+    )
   const onSubmit = async (data: ResetPasswordFormValues) => {
-    setLoading(true);
     setError(undefined);
-    const { data: status, error } = await admin.setUserPassword({
-      newPassword: data.password, 
-      userId: id, 
+    resetPasswordMutation.mutate({
+      id,
+      ...data
     });
-    if(status){
-      queryClient.invalidateQueries(trpc.user.get.queryFilter());
-      setDialogOpen(false);
-      setError(undefined);
-      setLoading(false);
-    }
-    if (error) {
-      setError(error.message);
-      setLoading(false);
-    }
+
   };
   return (
     <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
@@ -104,7 +108,7 @@ export default function ResetPasswordUser({ id }: { id: string }) {
                       onChange={field.onChange}
                       placeholder="Enter your password"
                       required
-                      disabled={loading}
+                      disabled={resetPasswordMutation.isPending}
                       {...{ showRules: true, showStrength: true }}
                     />
                   </FormControl>
@@ -127,7 +131,7 @@ export default function ResetPasswordUser({ id }: { id: string }) {
                       onChange={field.onChange}
                       placeholder="Confirm your password"
                       required
-                      disabled={loading}
+                      disabled={resetPasswordMutation.isPending}
                     />
                   </FormControl>
                   <FormMessage />
@@ -146,18 +150,18 @@ export default function ResetPasswordUser({ id }: { id: string }) {
               <ButtonWithIcon
                 type="submit"
                 startIcon={
-                  loading ? <Spinner /> : <UserLock />
+                  resetPasswordMutation.isPending ? <Spinner /> : <UserLock />
                 }
                 className={`${
-                  loading || !form.formState.isValid
+                  resetPasswordMutation.isPending || !form.formState.isValid
                     ? "cursor-not-allowed pointer-events-none"
                     : ""
                 }`}
                 disabled={
-                  loading || !form.formState.isValid
+                  resetPasswordMutation.isPending || !form.formState.isValid
                 }
               >
-                {loading
+                {resetPasswordMutation.isPending
                   ? "Resetting..."
                   : "Reset Password"}
               </ButtonWithIcon>

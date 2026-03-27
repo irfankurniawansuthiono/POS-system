@@ -38,6 +38,7 @@ import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { useTRPC } from "@/trpc/client";
 import { safeZodResolver } from "@/lib/zod";
 import { roleList } from "@/modules/admin/ui/config/auth/role.user";
+import { appToast } from "@/components/custom/app-toast";
 export default function AddUser() {
   const [error, setError] = useState<string | undefined>(undefined);
   const [dialogOpen, setDialogOpen] = useState(false);
@@ -61,9 +62,11 @@ export default function AddUser() {
         form.reset();
         setDialogOpen(false);
         setError(undefined);
+        appToast.success("User created successfully!");
       },
       onError: (err) => {
         setError(err.message);
+        appToast.error("Something went wrong!");
       },
     }),
   );

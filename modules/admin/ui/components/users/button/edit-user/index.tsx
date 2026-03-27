@@ -25,7 +25,6 @@ import { useForm } from "react-hook-form";
 import { useEffect, useState } from "react";
 import { Input } from "@/components/ui/input";
 import { Spinner } from "@/components/ui/spinner";
-import { admin } from "@/lib/auth-client";
 import {
   Select,
   SelectContent,
@@ -33,7 +32,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import {  useQueryClient } from "@tanstack/react-query";
+import {  useMutation, useQueryClient } from "@tanstack/react-query";
 import { useTRPC } from "@/trpc/client";
 import { safeZodResolver } from "@/lib/zod";
 import { roleList, RoleUser } from "@/modules/admin/ui/config/auth/role.user";
@@ -41,6 +40,7 @@ import {
   EditUserFormValues,
   editUserSchema,
 } from "@/lib/query-schema/user-schema-api";
+import { appToast } from "@/components/custom/app-toast";
 export default function EditUser({
   data,
 }: {
@@ -53,7 +53,6 @@ export default function EditUser({
 }) {
   const [error, setError] = useState<string | undefined>(undefined);
   const [dialogOpen, setDialogOpen] = useState(false);
-  const [loading, setLoading] = useState(false);
   const queryClient = useQueryClient();
   const form = useForm<EditUserFormValues>({
     resolver: safeZodResolver(editUserSchema),
@@ -78,22 +77,23 @@ export default function EditUser({
   }, [dialogOpen, data, form]);
   const trpc = useTRPC();
 
-  const onSubmit = async (data: EditUserFormValues) => {
-    setError(undefined);
-    const { data: userData, error } = await admin.updateUser({
-      userId: data.id,
-      data: data,
-    });
-    if (userData) {
+  const editUserMutation = useMutation(trpc.user.edit.mutationOptions({
+    onSuccess: () => {
       queryClient.invalidateQueries(trpc.user.get.queryFilter());
+      form.reset();
       setDialogOpen(false);
       setError(undefined);
-      setLoading(false);
-    }
-    if (error) {
-      setError(error.message);
-      setLoading(false);
-    }
+      appToast.success("User edited successfully!");
+    },
+    onError: (err) => {
+      setError(err.message);
+      appToast.error("Something went wrong!");
+    },
+  }));
+
+  const onSubmit = async (data: EditUserFormValues) => {
+    setError(undefined);
+    editUserMutation.mutate(data);
   };
   return (
     <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
@@ -130,7 +130,7 @@ export default function EditUser({
                     <Input
                       placeholder="Enter full name"
                       {...field}
-                      disabled={loading}
+                      disabled={editUserMutation.isPending}
                     />
                   </FormControl>
                   <FormMessage />
@@ -152,7 +152,7 @@ export default function EditUser({
                     <Input
                       placeholder="Enter your email address"
                       {...field}
-                      disabled={loading}
+                      disabled={editUserMutation.isPending}
                     />
                   </FormControl>
                   <FormMessage />
@@ -173,7 +173,7 @@ export default function EditUser({
                     <Select
                       onValueChange={field.onChange}
                       defaultValue={field.value}
-                      disabled={loading}
+                      disabled={editUserMutation.isPending}
                     >
                       <SelectTrigger className="w-full">
                         <SelectValue placeholder="Select a role" />
@@ -203,16 +203,16 @@ export default function EditUser({
               <ButtonWithIcon
                 type="submit"
                 startIcon={
-                  loading ? <Spinner /> : <UserPenIcon />
+                  editUserMutation.isPending ? <Spinner /> : <UserPenIcon />
                 }
                 className={`${
-                  loading || !form.formState.isValid
+                  editUserMutation.isPending || !form.formState.isValid
                     ? "cursor-not-allowed pointer-events-none"
                     : ""
                 }`}
-                disabled={loading || !form.formState.isValid}
+                disabled={editUserMutation.isPending || !form.formState.isValid}
               >
-                {loading ? "Editing..." : "Edit User"}
+                {editUserMutation.isPending ? "Editing..." : "Edit User"}
               </ButtonWithIcon>
             </DialogFooter>
           </form>

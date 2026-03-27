@@ -6,6 +6,7 @@ import {
   editUserSchema,
   getUserSchema,
 } from "@/lib/query-schema/user-schema-api";
+import { headers } from "next/headers";
 
 export const userRouter = createTRPCRouter({
   create: adminProcedure
@@ -92,11 +93,13 @@ export const userRouter = createTRPCRouter({
   delete: adminProcedure
     .input(deleteUserSchema)
     .mutation(async ({ ctx, input }) => {
-      await ctx.auth.api.removeUser({
+      const deletedUser = await ctx.auth.api.removeUser({
         body: {
           userId: input.id,
         },
+        headers: await headers(),
       });
+      return deletedUser;
     }),
   resetPassword: adminProcedure
     .input(resetPasswordAdminSchema)
@@ -106,6 +109,7 @@ export const userRouter = createTRPCRouter({
           userId: input.id,
           newPassword: input.password,
         },
+        headers: await headers(),
       });
 
       return status;
@@ -113,9 +117,17 @@ export const userRouter = createTRPCRouter({
   edit: adminProcedure
     .input(editUserSchema)
     .mutation(async ({ input, ctx }) => {
-      return await ctx.db.user.update({
-        where: { id: input.id },
-        data: { role: input.role, name: input.name, email: input.email },
+      const data = await ctx.auth.api.adminUpdateUser({
+        body: {
+          userId: input.id, // required
+          data: {
+            name: input.name,
+            email: input.email,
+            role: input.role as any,
+          },
+        },
+        headers: await headers(),
       });
+      return data;
     }),
 });

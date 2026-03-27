@@ -89,7 +89,7 @@ export function DataTableTemplate({
     <div className="space-y-4">
       <div className="flex items-center justify-between">
         {/* search input with icon */}
-        <Label>
+        <Label className="border rounded-md">
           <InputWithIcon>
             <Search size={16} />
             <input

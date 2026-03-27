@@ -1,6 +1,6 @@
 "use client";
 import { DataTableTemplate } from "../table";
-import { useMutation, useQuery } from "@tanstack/react-query";
+import { useQuery } from "@tanstack/react-query";
 import { useTRPC } from "@/trpc/client";
 import columns from "./columns";
 import { useState } from "react";
