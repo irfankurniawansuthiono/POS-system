@@ -2,12 +2,19 @@ import { User } from "@/app/generated/prisma";
 import { ColumnDef } from "@tanstack/react-table";
 import { Check, X } from "lucide-react";
 
-const columns: ColumnDef<User>[] = [
+const columns = (page: number, limit: number): ColumnDef<User>[] => [
+  {
+    accessorKey: "no",
+    header: "No.",
+    enableHiding: false,
+    cell: ({ row }) => (page - 1) * limit + row.index + 1,
+  },
   {
     accessorKey: "name",
     header: "Full Name",
+    enableHiding:false
   },
-  
+
   {
     accessorKey: "email",
     header: "Email",
@@ -22,9 +29,17 @@ const columns: ColumnDef<User>[] = [
     header: "Profile Picture",
     cell: ({ row }) =>
       row.original.image ? (
-        <img src={row.original.image} />
+        <img
+          src={row.original.image}
+          alt={row.original.name!}
+          className="h-10 w-10 rounded-md"
+        />
       ) : (
-        <img src="https://placehold.co/100x100" />
+        <img
+          src="https://placehold.co/100x100"
+          alt="Profile Picture"
+          className="h-10 w-10 rounded-md"
+        />
       ),
   },
   {
@@ -34,7 +49,8 @@ const columns: ColumnDef<User>[] = [
   {
     accessorKey: "banned",
     header: "Banned",
-    cell: ({ row }) => (row.original.banned ? <Check color="green"/> : <X color="red"/>),
+    cell: ({ row }) =>
+      row.original.banned ? <Check color="green" /> : <X color="red" />,
   },
   {
     accessorKey: "banExpires",
@@ -46,17 +62,13 @@ const columns: ColumnDef<User>[] = [
     accessorKey: "banReason",
     header: "Ban Reason",
     size: 200,
-    cell: ({ row }) =>
-  row.original.banReason ? (
-      row.original.banReason
-  ) : (
-    "-"
-  ),
+    cell: ({ row }) => (row.original.banReason ? row.original.banReason : "-"),
   },
   {
     accessorKey: "verified",
     header: "Email Verified",
-    cell: ({ row }) => (row.original.emailVerified ? <Check color="green"/> : <X color="red"/>),
+    cell: ({ row }) =>
+      row.original.emailVerified ? <Check color="green" /> : <X color="red" />,
   },
   {
     accessorKey: "updatedAt",
@@ -66,10 +78,8 @@ const columns: ColumnDef<User>[] = [
   {
     accessorKey: "actions",
     header: "Actions",
-    cell: ({ row }) => (
-        <h1>yesy</h1>
-    )
-  }
+    cell: ({ row }) => <h1>yesy</h1>,
+  },
 ];
 
 export default columns;

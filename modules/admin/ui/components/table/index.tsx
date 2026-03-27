@@ -1,11 +1,10 @@
 "use client";
-"use no memo";
 import {
   flexRender,
   getCoreRowModel,
   useReactTable,
-  getPaginationRowModel,
   ColumnDef,
+  VisibilityState,
 } from "@tanstack/react-table";
 import {
   Table,
@@ -17,29 +16,118 @@ import {
 } from "@/components/ui/table";
 import { Spinner } from "@/components/ui/spinner";
 import { DataTablePagination } from "./table-pagination";
-import { DataTableViewOptions } from "./table-column-visibility";
+
+// import { type Table } from "@tanstack/react-table";
+import { ChevronDown } from "lucide-react";
+
+import { Button } from "@/components/ui/button";
+import {
+  DropdownMenu,
+  DropdownMenuCheckboxItem,
+  DropdownMenuContent,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
+import { useState } from "react";
+import { Label } from "@/components/ui/label";
+import { InputWithIcon } from "@/components/custom/input-with-icon";
+import { Search } from "lucide-react";
 
 /* eslint-disable @typescript-eslint/no-explicit-any */
 interface DataTableProps<TData, TValue> {
   columns: ColumnDef<TData, TValue>[];
   data: TData[];
+  searchPlaceHolder: string;
   isLoading: boolean;
+  currentPageState?: number;
+  limitState?: number;
+  metadata?: {
+    total: number;
+    currentPage: number;
+    limit: number;
+    hasNextPage: boolean;
+    hasPreviousPage: boolean;
+    nextPage: number | null;
+    previousPage: number | null;
+    totalPages: number;
+  };
+  onLimitChange: (limit: number) => void;
+  onNextPage: () => void;
+  onPrevPage: () => void;
+  onSearchChange: (search: string) => void;
+  onPageChange: (page: number) => void;
 }
 
 export function DataTableTemplate({
   columns,
   data,
+  metadata,
+  searchPlaceHolder,
   isLoading = true,
+  onNextPage,
+  onPrevPage,
+  onLimitChange,
+  onSearchChange,
+  onPageChange,
 }: DataTableProps<any, any>) {
+  const [columnVisibility, setColumnVisibility] = useState<VisibilityState>({});
   const table = useReactTable({
     data,
     columns,
     getCoreRowModel: getCoreRowModel(),
-    getPaginationRowModel: getPaginationRowModel(),
+    manualPagination: true,
+    pageCount: metadata?.totalPages,
+    onColumnVisibilityChange: setColumnVisibility,
+    state: {
+      columnVisibility,
+      pagination: {
+        pageIndex: metadata?.currentPage ? metadata?.currentPage - 1 : 0,
+        pageSize: metadata?.limit || 10,
+      },
+    },
   });
-
   return (
-    <>
+    <div className="space-y-4">
+      <div className="flex items-center justify-between">
+        {/* search input with icon */}
+        <Label>
+          <InputWithIcon>
+            <Search size={16} />
+            <input
+              type="search"
+              data-slot="search"
+              placeholder={searchPlaceHolder}
+              onChange={(e) => onSearchChange(e.target.value)}
+            />
+          </InputWithIcon>
+        </Label>
+        {/* toggle column visibility */}
+        <DropdownMenu>
+          <DropdownMenuTrigger asChild>
+            <Button variant="outline">
+              Columns <ChevronDown className="ml-2 size-4" />
+            </Button>
+          </DropdownMenuTrigger>
+          <DropdownMenuContent align="end">
+            {table
+              .getAllColumns()
+              .filter((column) => column.getCanHide())
+              .map((column) => (
+                <DropdownMenuCheckboxItem
+                  checked={column.getIsVisible()}
+                  className="capitalize"
+                  key={column.id}
+                  onSelect={(e) => e.preventDefault()}
+                  onCheckedChange={(value) => column.toggleVisibility(!!value)}
+                >
+                  {typeof column.columnDef.header === "string"
+                    ? column.columnDef.header
+                    : column.id}
+                </DropdownMenuCheckboxItem>
+              ))}
+          </DropdownMenuContent>
+        </DropdownMenu>
+      </div>
+      {/* table component start */}
       <div className="overflow-hidden rounded-md border w-full ">
         <Table>
           <TableHeader>
@@ -99,7 +187,21 @@ export function DataTableTemplate({
           </TableBody>
         </Table>
       </div>
-      <DataTablePagination table={table} />
-    </>
+      {metadata && (
+        <DataTablePagination
+          onPageChange={onPageChange}
+          limit={metadata.limit}
+          total={metadata.total}
+          totalPages={metadata.totalPages}
+          currentPage={metadata.currentPage}
+          hasNextPage={metadata.hasNextPage}
+          onLimitChange={onLimitChange}
+          hasPreviousPage={metadata.hasPreviousPage}
+          onNextPage={onNextPage}
+          onPrevPage={onPrevPage}
+          table={table}
+        />
+      )}
+    </div>
   );
 }
