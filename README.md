@@ -329,7 +329,6 @@ export const exampleRouter = createTRPCRouter({
     .input(z.object({ title: z.string() }))
     .mutation(({ ctx, input }) => {
       // ctx.auth contains the user session
-      console.log("User:", ctx.auth.user.id);
       return { success: true };
     }),
 });

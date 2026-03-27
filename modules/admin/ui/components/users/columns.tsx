@@ -1,6 +1,9 @@
 import { User } from "@/app/generated/prisma";
 import { ColumnDef } from "@tanstack/react-table";
 import { Check, X } from "lucide-react";
+import DeleteUser from "./button/delete-user";
+import EditUser from "./button/edit-user";
+import ResetPasswordUser from "./button/reset-password-user";
 
 const columns = (page: number, limit: number): ColumnDef<User>[] => [
   {
@@ -78,7 +81,20 @@ const columns = (page: number, limit: number): ColumnDef<User>[] => [
   {
     accessorKey: "actions",
     header: "Actions",
-    cell: ({ row }) => <h1>yesy</h1>,
+    cell: ({ row }) => {
+      return (
+        <div className="flex gap-2">
+          <DeleteUser id={row.original.id}/>
+          <EditUser data={{
+            id: row.original.id,
+            name: row.original.name!,
+            email: row.original.email!,
+            role: row.original.role!
+          }} />
+          <ResetPasswordUser id={row.original.id} />
+        </div>
+      )
+    },
   },
 ];
 

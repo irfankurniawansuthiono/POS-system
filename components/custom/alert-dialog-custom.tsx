@@ -7,10 +7,13 @@ import {
   AlertDialogFooter,
   AlertDialogHeader,
   AlertDialogTitle,
+  AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
 import { Input } from "@/components/ui/input";
 import { useState } from "react";
 import { Spinner } from "../ui/spinner";
+import { Button } from "../ui/button";
+import { Trash } from "lucide-react";
 
 interface DeleteConfirmationDialogProps {
   open: boolean;
@@ -21,6 +24,7 @@ interface DeleteConfirmationDialogProps {
   isDeleting: boolean;
   confirmationKeyword?: string;
   confirmationText?: string;
+  children?: React.ReactNode;
 }
 
 export function DeleteConfirmationDialog({
@@ -32,6 +36,7 @@ export function DeleteConfirmationDialog({
   isDeleting,
   confirmationKeyword = "DELETE",
   confirmationText,
+  children,
 }: DeleteConfirmationDialogProps) {
   const [confirmationInput, setConfirmationInput] = useState("");
 
@@ -44,6 +49,7 @@ export function DeleteConfirmationDialog({
 
   return (
     <AlertDialog open={open} onOpenChange={handleOpenChange}>
+      {children}
       <AlertDialogContent>
         <AlertDialogHeader>
           <AlertDialogTitle>{title}</AlertDialogTitle>
@@ -57,6 +63,7 @@ export function DeleteConfirmationDialog({
               to confirm.
             </p>
             <Input
+              autoFocus
               value={confirmationInput}
               onChange={(e) => setConfirmationInput(e.target.value)}
               placeholder={confirmationKeyword}

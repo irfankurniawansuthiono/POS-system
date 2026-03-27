@@ -1,5 +1,5 @@
 import PageContainer from "@/components/custom/page-container";
-import AddUsers from "@/modules/admin/ui/components/users/button/add-users";
+import AddUser from "@/modules/admin/ui/components/users/button/add-user";
 import UsersDataTable from "@/modules/admin/ui/components/users/user-data-table";
 import { Metadata } from "next";
 
@@ -17,7 +17,7 @@ export default function UsersPage() {
       scrollable={false}
       pageTitle="Users"
       pageDescription="Manage user accounts here"
-      pageHeaderAction={<AddUsers/>}
+      pageHeaderAction={<AddUser/>}
     >
         <UsersDataTable/>
     </PageContainer>

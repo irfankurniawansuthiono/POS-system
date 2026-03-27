@@ -23,7 +23,20 @@ export const resetPasswordSchema = z
       .min(8, "Confirm password must be at least 8 characters"),
   })
   .refine((data) => data.password === data.confirmPassword, {
-    message: "Passwords do not match",
+    message: "Password does not match",
+    path: ["confirmPassword"],
+  });
+
+export const resetPasswordAdminSchema = z
+  .object({
+    id: z.string(),
+    password: z.string().min(8, "Password must be at least 8 characters"),
+    confirmPassword: z
+      .string()
+      .min(8, "Confirm password must be at least 8 characters"),
+  })
+  .refine((data) => data.password === data.confirmPassword, {
+    message: "Password does not match",
     path: ["confirmPassword"],
   });
 
@@ -37,5 +50,8 @@ export const addUserSchema = registerSchema.extend({
 export type LoginFormValues = z.infer<typeof loginSchema>;
 export type RegisterFormValues = z.infer<typeof registerSchema>;
 export type ResetPasswordFormValues = z.infer<typeof resetPasswordSchema>;
+export type ResetPasswordAdminFormValues = z.infer<
+  typeof resetPasswordAdminSchema
+>;
 export type ForgotPasswordFormValues = z.infer<typeof forgotPasswordSchema>;
 export type AddUserFormValues = z.infer<typeof addUserSchema>;

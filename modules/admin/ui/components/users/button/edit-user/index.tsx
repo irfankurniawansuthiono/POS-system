@@ -1,6 +1,6 @@
 "use client";
 import { ButtonWithIcon } from "@/components/custom/button-with-icon";
-import { UserPlus, User, LockKeyhole, UserKey, Mail } from "lucide-react";
+import { User, UserKey, Mail, Pencil, UserPenIcon } from "lucide-react";
 import {
   Dialog,
   DialogClose,
@@ -22,10 +22,10 @@ import {
 } from "@/components/ui/form";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { useForm } from "react-hook-form";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Input } from "@/components/ui/input";
-import { PasswordInput } from "@/components/custom/password-input";
 import { Spinner } from "@/components/ui/spinner";
+import { admin } from "@/lib/auth-client";
 import {
   Select,
   SelectContent,
@@ -33,60 +33,81 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { AddUserFormValues, addUserSchema } from "@/lib/form-schema";
-import { useMutation, useQueryClient } from "@tanstack/react-query";
+import {  useQueryClient } from "@tanstack/react-query";
 import { useTRPC } from "@/trpc/client";
 import { safeZodResolver } from "@/lib/zod";
-import { roleList } from "@/modules/admin/ui/config/auth/role.user";
-export default function AddUsers() {
+import { roleList, RoleUser } from "@/modules/admin/ui/config/auth/role.user";
+import {
+  EditUserFormValues,
+  editUserSchema,
+} from "@/lib/query-schema/user-schema-api";
+export default function EditUser({
+  data,
+}: {
+  data: {
+    id: string;
+    name: string;
+    email: string;
+    role: string;
+  };
+}) {
   const [error, setError] = useState<string | undefined>(undefined);
   const [dialogOpen, setDialogOpen] = useState(false);
+  const [loading, setLoading] = useState(false);
   const queryClient = useQueryClient();
-  const form = useForm<AddUserFormValues>({
-    resolver: safeZodResolver(addUserSchema),
+  const form = useForm<EditUserFormValues>({
+    resolver: safeZodResolver(editUserSchema),
     mode: "onSubmit",
     shouldFocusError: true,
     defaultValues: {
-      email: "",
-      password: "",
-      name: "",
-      role: "user",
+      id: data.id,
+      name: data.name ?? undefined,
+      email: data.email ?? undefined,
+      role: data.role as RoleUser,
     },
   });
+  useEffect(() => {
+    if (dialogOpen) {
+      form.reset({
+        id: data.id,
+        name: data.name,
+        email: data.email,
+        role: data.role as RoleUser,
+      });
+    }
+  }, [dialogOpen, data, form]);
   const trpc = useTRPC();
-  // const queryClient = useQueryClient();
-  const createUserMutation = useMutation(
-    trpc.user.create.mutationOptions({
-      onSuccess: () => {
-        queryClient.invalidateQueries(trpc.user.list.queryOptions());
-        form.reset();
-        setDialogOpen(false);
-        setError(undefined);
-      },
-      onError: (err) => {
-        setError(err.message);
-      },
-    }),
-  );
-  const onSubmit = async (data: AddUserFormValues) => {
+
+  const onSubmit = async (data: EditUserFormValues) => {
     setError(undefined);
-    createUserMutation.mutate(data);
+    const { data: userData, error } = await admin.updateUser({
+      userId: data.id,
+      data: data,
+    });
+    if (userData) {
+      queryClient.invalidateQueries(trpc.user.get.queryFilter());
+      setDialogOpen(false);
+      setError(undefined);
+      setLoading(false);
+    }
+    if (error) {
+      setError(error.message);
+      setLoading(false);
+    }
   };
   return (
     <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
       <DialogTrigger asChild>
-        <ButtonWithIcon startIcon={<UserPlus />} variant="default">
-          Add
-        </ButtonWithIcon>
+        <Button variant="outline">
+          <Pencil color="blue" />
+        </Button>
       </DialogTrigger>
       <DialogContent className="sm:max-w-sm">
         <Form {...form}>
           <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
             <DialogHeader>
-              <DialogTitle>Add New User</DialogTitle>
-              <DialogDescription>
-                Fill in the details to create a new user account.
-              </DialogDescription>
+              <DialogTitle>Edit User</DialogTitle>
+              <DialogDescription>ID: {data.id}</DialogDescription>
             </DialogHeader>
 
             {error && (
@@ -109,7 +130,7 @@ export default function AddUsers() {
                     <Input
                       placeholder="Enter full name"
                       {...field}
-                      disabled={createUserMutation.isPending}
+                      disabled={loading}
                     />
                   </FormControl>
                   <FormMessage />
@@ -131,7 +152,7 @@ export default function AddUsers() {
                     <Input
                       placeholder="Enter your email address"
                       {...field}
-                      disabled={createUserMutation.isPending}
+                      disabled={loading}
                     />
                   </FormControl>
                   <FormMessage />
@@ -152,7 +173,7 @@ export default function AddUsers() {
                     <Select
                       onValueChange={field.onChange}
                       defaultValue={field.value}
-                      disabled={createUserMutation.isPending}
+                      disabled={loading}
                     >
                       <SelectTrigger className="w-full">
                         <SelectValue placeholder="Select a role" />
@@ -170,43 +191,28 @@ export default function AddUsers() {
                 </FormItem>
               )}
             />
-            {/* Password field */}
-            <FormField
-              control={form.control}
-              name="password"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>
-                    <LockKeyhole className="inline" size={15} />
-                    Password
-                  </FormLabel>
-                  <FormControl>
-                    <PasswordInput
-                      value={field.value}
-                      onChange={field.onChange}
-                      placeholder="Enter your password"
-                      required
-                      disabled={createUserMutation.isPending}
-                      {...{ showRules: true, showStrength: true }}
-                    />
-                  </FormControl>
-                  {/* <FormMessage /> */}
-                </FormItem>
-              )}
-            />
             <DialogFooter>
               <DialogClose asChild>
-                <Button variant="outline" className="select-none cursor-pointer">Cancel</Button>
+                <Button
+                  variant="outline"
+                  className="select-none cursor-pointer"
+                >
+                  Cancel
+                </Button>
               </DialogClose>
               <ButtonWithIcon
                 type="submit"
-                startIcon={createUserMutation.isPending ? <Spinner /> : <UserPlus />}
-                className={`${createUserMutation.isPending || !form.formState.isValid
-                  ? "cursor-not-allowed pointer-events-none"
-                  : ""}`}
-                disabled={createUserMutation.isPending || !form.formState.isValid}
+                startIcon={
+                  loading ? <Spinner /> : <UserPenIcon />
+                }
+                className={`${
+                  loading || !form.formState.isValid
+                    ? "cursor-not-allowed pointer-events-none"
+                    : ""
+                }`}
+                disabled={loading || !form.formState.isValid}
               >
-                {createUserMutation.isPending ? "Adding..." : "Add User"}
+                {loading ? "Editing..." : "Edit User"}
               </ButtonWithIcon>
             </DialogFooter>
           </form>
