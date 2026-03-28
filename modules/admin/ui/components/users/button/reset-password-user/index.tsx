@@ -26,14 +26,13 @@ import { useState } from "react";
 import { PasswordInput } from "@/components/custom/password-input";
 import { Spinner } from "@/components/ui/spinner";
 import {
-  ResetPasswordAdminFormValues,
   ResetPasswordFormValues,
   resetPasswordSchema,
 } from "@/lib/form-schema";
 import {  useMutation, useQueryClient } from "@tanstack/react-query";
 import { useTRPC } from "@/trpc/client";
-import { safeZodResolver } from "@/lib/zod";
 import { appToast } from "@/components/custom/app-toast";
+import { zodResolver } from "@hookform/resolvers/zod";
 
 export default function ResetPasswordUser({ id }: { id: string }) {
   const [error, setError] = useState<string | undefined>(undefined);
@@ -41,15 +40,16 @@ export default function ResetPasswordUser({ id }: { id: string }) {
   const queryClient = useQueryClient();
   const trpc = useTRPC();
 
-  const form = useForm<ResetPasswordAdminFormValues>({
-    resolver: safeZodResolver(resetPasswordSchema),
-    mode: "onSubmit",
+  const form = useForm<ResetPasswordFormValues>({
+    resolver: zodResolver(resetPasswordSchema),
+    mode: "onChange",
     shouldFocusError: true,
     defaultValues: {
       password: "",
       confirmPassword: "",
     },
   });
+
 const resetPasswordMutation = useMutation(
       trpc.user.resetPassword.mutationOptions({
        onSuccess: () => {
@@ -105,14 +105,16 @@ const resetPasswordMutation = useMutation(
                   <FormControl>
                     <PasswordInput
                       value={field.value}
-                      onChange={field.onChange}
+                      onChange={(e) => {
+                        field.onChange(e);
+                        console.log(form.formState.errors)
+                      }}
                       placeholder="Enter your password"
                       required
                       disabled={resetPasswordMutation.isPending}
                       {...{ showRules: true, showStrength: true }}
                     />
                   </FormControl>
-                  <FormMessage />
                 </FormItem>
               )}
             />

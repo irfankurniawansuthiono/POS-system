@@ -146,4 +146,5 @@ export const Icons = {
   workExp: BriefcaseBusiness,
   graduate: GraduationCap,
   mail: Mail,
+  users: Users,
 };

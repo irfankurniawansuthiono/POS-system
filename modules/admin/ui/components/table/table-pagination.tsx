@@ -56,6 +56,7 @@ export function DataTablePagination<TData>({
           <p className="text-sm font-medium mr-2">Rows per page</p>
           <Select
             value={`${limit}`}
+            disabled={totalPages === 0}
             onValueChange={(value) => onLimitChange(Number(value))}
           >
             <SelectTrigger size="sm" className="p-1 ">
@@ -63,15 +64,15 @@ export function DataTablePagination<TData>({
             </SelectTrigger>
             <SelectContent side="top">
               {[10, 20, 25, 30, 40, 50].map((pageSize) => (
-                <SelectItem key={pageSize} value={`${pageSize}`}>
-                  {pageSize}
+                <SelectItem key={pageSize} value={`${pageSize}`} disabled={totalPages === 0 || pageSize >= limit * totalPages}>
+                  {totalPages === 0 ? "0" : pageSize}
                 </SelectItem>
               ))}
             </SelectContent>
           </Select>
         </div>
         <div className="flex w-25 items-center justify-center text-sm font-medium ml-2">
-          Page {currentPage} of{" "}
+          Page {totalPages === 0 ? 0 : currentPage} of{" "}
           {totalPages}
         </div>
         <div className="flex items-center space-x-2">

@@ -3,6 +3,7 @@ import {
   FolderGit2,
   Cpu,
   Award,
+  Users,
   BriefcaseBusiness,
   GraduationCap,
   Share2,
@@ -27,6 +28,13 @@ export const searchItems: SearchItem[] = [
     group: "Pages",
     icon: LayoutDashboard,
     shortcut: ["d", "d"],
+  },
+  {
+    title: "Users",
+    url: "/admin/users",
+    group: "Pages",
+    icon: Users,
+    shortcut: ["u", "u"],
   },
   {
     title: "Inbox",

@@ -44,7 +44,7 @@ export const navItems: NavItem[] = [
   {
     title: "Users",
     url: "/admin/users",
-    icon: "user",
+    icon: "users",
     isActive: false,
     items: [],
     access: { role: "admin" }, 

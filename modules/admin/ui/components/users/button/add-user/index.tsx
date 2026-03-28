@@ -36,15 +36,15 @@ import {
 import { AddUserFormValues, addUserSchema } from "@/lib/form-schema";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { useTRPC } from "@/trpc/client";
-import { safeZodResolver } from "@/lib/zod";
 import { roleList } from "@/modules/admin/ui/config/auth/role.user";
 import { appToast } from "@/components/custom/app-toast";
+import { zodResolver } from "@hookform/resolvers/zod";
 export default function AddUser() {
   const [error, setError] = useState<string | undefined>(undefined);
   const [dialogOpen, setDialogOpen] = useState(false);
   const queryClient = useQueryClient();
   const form = useForm<AddUserFormValues>({
-    resolver: safeZodResolver(addUserSchema),
+    resolver: zodResolver(addUserSchema),
     mode: "onSubmit",
     shouldFocusError: true,
     defaultValues: {

@@ -18,13 +18,53 @@ export const forgotPasswordSchema = z.object({
 export const resetPasswordSchema = z
   .object({
     password: z.string().min(8, "Password must be at least 8 characters"),
-    confirmPassword: z
-      .string()
-      .min(8, "Confirm password must be at least 8 characters"),
+    confirmPassword: z.string(),
   })
-  .refine((data) => data.password === data.confirmPassword, {
-    message: "Password does not match",
-    path: ["confirmPassword"],
+  .superRefine((data, ctx) => {
+    const { password, confirmPassword } = data;
+
+    // 🔥 PRIORITAS UTAMA
+    if (password !== confirmPassword) {
+      ctx.addIssue({
+        code: "custom",
+        message: "Password does not match",
+        path: ["confirmPassword"],
+      });
+      return; // ⛔ STOP validasi lain
+    }
+
+    // ✅ Validasi lanjutan (hanya kalau sudah match)
+    if (confirmPassword.length < 8) {
+      ctx.addIssue({
+        code: "custom",
+        message: "Confirm password must be at least 8 characters",
+        path: ["confirmPassword"],
+      });
+    }
+
+    if (!/[a-z]/.test(confirmPassword) || !/[A-Z]/.test(confirmPassword)) {
+      ctx.addIssue({
+        code: "custom",
+        message: "Password must contain uppercase & lowercase",
+        path: ["confirmPassword"],
+      });
+    }
+
+    if (!/\d/.test(confirmPassword)) {
+      ctx.addIssue({
+        code: "custom",
+        message: "Password must contain number",
+        path: ["confirmPassword"],
+      });
+    }
+
+    if (!/[@$!%*#?&]/.test(confirmPassword)) {
+      ctx.addIssue({
+        code: "custom",
+        message: "Password must contain special character",
+        path: ["confirmPassword"],
+      });
+    }
   });
 
 export const resetPasswordAdminSchema = z

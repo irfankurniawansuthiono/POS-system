@@ -34,13 +34,13 @@ import {
 } from "@/components/ui/select";
 import {  useMutation, useQueryClient } from "@tanstack/react-query";
 import { useTRPC } from "@/trpc/client";
-import { safeZodResolver } from "@/lib/zod";
 import { roleList, RoleUser } from "@/modules/admin/ui/config/auth/role.user";
 import {
   EditUserFormValues,
   editUserSchema,
 } from "@/lib/query-schema/user-schema-api";
 import { appToast } from "@/components/custom/app-toast";
+import { zodResolver } from "@hookform/resolvers/zod";
 export default function EditUser({
   data,
 }: {
@@ -55,7 +55,7 @@ export default function EditUser({
   const [dialogOpen, setDialogOpen] = useState(false);
   const queryClient = useQueryClient();
   const form = useForm<EditUserFormValues>({
-    resolver: safeZodResolver(editUserSchema),
+    resolver: zodResolver(editUserSchema),
     mode: "onSubmit",
     shouldFocusError: true,
     defaultValues: {
