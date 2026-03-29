@@ -1,4 +1,5 @@
 export const role = {
+  superadmin: "superadmin",
   admin: "admin",
   cashier: "cashier",
   warehouse: "warehouse",

@@ -1,4 +1,4 @@
-import { createTRPCRouter, adminProcedure } from "@/trpc/init";
+import { createTRPCRouter, superAdminOrAdminProcedure } from "@/trpc/init";
 import { addUserSchema, resetPasswordAdminSchema } from "@/lib/form-schema";
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import {
@@ -9,7 +9,7 @@ import {
 import { headers } from "next/headers";
 
 export const userRouter = createTRPCRouter({
-  create: adminProcedure
+  create: superAdminOrAdminProcedure
     .input(addUserSchema)
     .mutation(async ({ input, ctx }) => {
       const newUser = await ctx.auth.api.createUser({
@@ -22,106 +22,108 @@ export const userRouter = createTRPCRouter({
       });
       return newUser;
     }),
-  get: adminProcedure.input(getUserSchema).query(async ({ ctx, input }) => {
-    const currentPage = input.page || 1;
-    const limit = input.limit || 10;
-    const rolesFilter = input.rolesFilter || [];
-    const banned = input.bannedFilter || undefined;
-    const verified = input.verifiedFilter || undefined;
-    const sortDirection = input.sortDirection || "desc";
-    const sortBy = input.sortBy || "updatedAt";
-    const search = input.search || "";
-    const skip = (currentPage - 1) * limit;
-    const userTotal = await ctx.db.user.count({
-      where: {
-        NOT: {
-          id: ctx.session.user.id,
+  get: superAdminOrAdminProcedure
+    .input(getUserSchema)
+    .query(async ({ ctx, input }) => {
+      const currentPage = input.page || 1;
+      const limit = input.limit || 10;
+      const rolesFilter = input.rolesFilter || [];
+      const banned = input.bannedFilter || undefined;
+      const verified = input.verifiedFilter || undefined;
+      const sortDirection = input.sortDirection || "desc";
+      const sortBy = input.sortBy || "updatedAt";
+      const search = input.search || "";
+      const skip = (currentPage - 1) * limit;
+      const userTotal = await ctx.db.user.count({
+        where: {
+          NOT: {
+            id: ctx.session.user.id,
+          },
+          role: rolesFilter.length > 0 ? { in: rolesFilter } : undefined,
+          banned:
+            banned === null
+              ? undefined
+              : {
+                  equals: banned,
+                },
+          emailVerified:
+            verified === null
+              ? undefined
+              : {
+                  equals: verified,
+                },
+          OR: [
+            {
+              name: {
+                contains: search,
+                mode: "insensitive",
+              },
+            },
+            {
+              email: {
+                contains: search,
+                mode: "insensitive",
+              },
+            },
+          ],
         },
-        role: rolesFilter.length > 0 ? { in: rolesFilter } : undefined,
-        banned:
-          banned === null
-            ? undefined
-            : {
-                equals: banned,
-              },
-        emailVerified:
-          verified === null
-            ? undefined
-            : {
-                equals: verified,
-              },
-        OR: [
-          {
-            name: {
-              contains: search,
-              mode: "insensitive",
-            },
+      });
+      const users = await ctx.db.user.findMany({
+        skip,
+        take: limit,
+        where: {
+          NOT: {
+            id: ctx.session.user.id,
           },
-          {
-            email: {
-              contains: search,
-              mode: "insensitive",
+          role: rolesFilter.length > 0 ? { in: rolesFilter } : undefined,
+          banned:
+            banned === null
+              ? undefined
+              : {
+                  equals: banned,
+                },
+          emailVerified:
+            verified === null
+              ? undefined
+              : {
+                  equals: verified,
+                },
+          OR: [
+            {
+              name: {
+                contains: search,
+                mode: "insensitive",
+              },
             },
-          },
-        ],
-      },
-    });
-    const users = await ctx.db.user.findMany({
-      skip,
-      take: limit,
-      where: {
-        NOT: {
-          id: ctx.session.user.id,
+            {
+              email: {
+                contains: search,
+                mode: "insensitive",
+              },
+            },
+          ],
         },
-        role: rolesFilter.length > 0 ? { in: rolesFilter } : undefined,
-        banned:
-          banned === null
-            ? undefined
-            : {
-                equals: banned,
-              },
-        emailVerified:
-          verified === null
-            ? undefined
-            : {
-                equals: verified,
-              },
-        OR: [
-          {
-            name: {
-              contains: search,
-              mode: "insensitive",
-            },
-          },
-          {
-            email: {
-              contains: search,
-              mode: "insensitive",
-            },
-          },
-        ],
-      },
-      orderBy: {
-        [sortBy]: sortDirection,
-      },
-    });
-    const hasNextPage = skip + users.length < userTotal;
-    const hasPreviousPage = skip > 0;
-    const totalPages = Math.ceil(userTotal / limit);
-    const meta = {
-      total: userTotal,
-      currentPage,
-      limit,
-      hasNextPage,
-      hasPreviousPage,
-      totalPages,
-      nextPage: hasNextPage ? currentPage + 1 : null,
-      previousPage: hasPreviousPage ? currentPage - 1 : null,
-    };
+        orderBy: {
+          [sortBy]: sortDirection,
+        },
+      });
+      const hasNextPage = skip + users.length < userTotal;
+      const hasPreviousPage = skip > 0;
+      const totalPages = Math.ceil(userTotal / limit);
+      const meta = {
+        total: userTotal,
+        currentPage,
+        limit,
+        hasNextPage,
+        hasPreviousPage,
+        totalPages,
+        nextPage: hasNextPage ? currentPage + 1 : null,
+        previousPage: hasPreviousPage ? currentPage - 1 : null,
+      };
 
-    return { users, meta };
-  }),
-  delete: adminProcedure
+      return { users, meta };
+    }),
+  delete: superAdminOrAdminProcedure
     .input(deleteUserSchema)
     .mutation(async ({ ctx, input }) => {
       const deletedUser = await ctx.auth.api.removeUser({
@@ -132,7 +134,7 @@ export const userRouter = createTRPCRouter({
       });
       return deletedUser;
     }),
-  resetPassword: adminProcedure
+  resetPassword: superAdminOrAdminProcedure
     .input(resetPasswordAdminSchema)
     .mutation(async ({ ctx, input }) => {
       const { status } = await ctx.auth.api.setUserPassword({
@@ -145,7 +147,7 @@ export const userRouter = createTRPCRouter({
 
       return status;
     }),
-  edit: adminProcedure
+  edit: superAdminOrAdminProcedure
     .input(editUserSchema)
     .mutation(async ({ input, ctx }) => {
       const data = await ctx.auth.api.adminUpdateUser({

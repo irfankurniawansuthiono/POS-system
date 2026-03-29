@@ -42,12 +42,17 @@ export const protectedProcedure = baseProcedure.use(async ({ ctx, next }) => {
     ctx: { ...ctxWithIp, session, ip: ctxWithIp.ip, db: prisma, auth },
   });
 });
-export const adminProcedure = protectedProcedure.use(async ({ ctx, next }) => {
-  if (ctx.session.user?.role !== role.admin) {
-    throw new TRPCError({
-      code: "FORBIDDEN",
-      message: "Anda tidak memiliki akses admin",
-    });
-  }
-  return next();
-});
+export const superAdminOrAdminProcedure = protectedProcedure.use(
+  async ({ ctx, next }) => {
+    if (
+      ctx.session.user?.role !== role.admin &&
+      ctx.session.user?.role !== role.superadmin
+    ) {
+      throw new TRPCError({
+        code: "FORBIDDEN",
+        message: "Anda tidak memiliki akses admin",
+      });
+    }
+    return next();
+  },
+);

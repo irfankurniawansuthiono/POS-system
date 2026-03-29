@@ -1,7 +1,6 @@
 import { getSession } from "@/hooks/get-session";
 import { redirect } from "next/navigation";
 import AdminLayout from "@/modules/admin/ui/layout/admin-layout";
-import { role } from "@/modules/admin/ui/config/auth/role.user";
 
 type AdminLayoutProps = {
   children: React.ReactNode;
@@ -11,9 +10,9 @@ export default async function AdminLayoutWrapper({
   children,
 }: AdminLayoutProps) {
   const session = await getSession();
-  const isAdminOrSuperAdmin = session?.user.role === role.admin || session?.user.role === role.superadmin;
+  const isAdmin = session?.user.role === "superadmin";
 
-  if (!isAdminOrSuperAdmin) redirect("/");
+  if (!isAdmin) redirect("/");
 
   return <AdminLayout>{children}</AdminLayout>;
 }

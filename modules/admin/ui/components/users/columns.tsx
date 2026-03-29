@@ -4,6 +4,8 @@ import { Check, X } from "lucide-react";
 import DeleteUser from "./button/delete-user";
 import EditUser from "./button/edit-user";
 import ResetPasswordUser from "./button/reset-password-user";
+import { role } from "../../config/auth/role.user";
+import UserRoleBadge from "./role-badge-user";
 
 const columns = (page: number, limit: number): ColumnDef<User>[] => [
   {
@@ -48,6 +50,10 @@ const columns = (page: number, limit: number): ColumnDef<User>[] => [
   {
     accessorKey: "role",
     header: "Roles",
+    cell: ({ row }) => {
+      const userRole = row.original.role!;
+      return (<UserRoleBadge role={userRole} />)
+    },
   },
   {
     accessorKey: "banned",

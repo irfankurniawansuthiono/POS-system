@@ -1,4 +1,5 @@
 import { NavItem } from "@/types";
+import { role } from "./auth/role.user";
 
 /**
  * Navigation configuration with RBAC support
@@ -39,52 +40,71 @@ export const navItems: NavItem[] = [
     icon: "dashboard",
     isActive: false,
     shortcut: ["d", "d"],
+    access: { role: [role.admin, role.superadmin] },
     items: [],
   },
   {
     title: "Users",
-    url: "/admin/users",
+    url: "/users",
     icon: "users",
     isActive: false,
     items: [],
-    access: { role: "admin" }, 
+    access: { role: role.superadmin},
   },
   {
-    title: "Inbox",
-    url: "/admin/inbox",
-    icon: "mail",
-    isActive: false,
-    items: [],
-  },
-  {
-    title: "Workspaces",
+    title: "Products",
     url: "#", // Placeholder as there is no direct link for the parent
-    icon: "workspace",
+    icon: "products",
     isActive: true,
+    access: { role: [role.admin, role.superadmin] },
     items: [
       {
-        title: "Portfolio",
-        url: "/admin/portfolio",
-        icon: "layer",
-        shortcut: ["m", "m"],
-      },
-      {
-        title: "Resume",
-        url: "/admin/resume",
-        icon: "profile",
-        shortcut: ["m", "m"],
+        title: "Categories",
+        url: "/admin/products/categories",
+        isActive: false,
+        items: [],
+        access: { role: [role.admin, role.superadmin] },
+        shortcut: ["c", "c"],
       },
     ],
   },
-  {
-    title: "Tracker",
-    url: "/admin/tracker",
-    icon: "exclusive",
-    isActive: false,
-    items: [],
-    // Require organization to be active
-    access: { requireOrg: true },
-    // Alternative: require specific permission
-    // access: { requireOrg: true, permission: 'org:teams:view' }
-  },
+
+  // {
+  //   title: "Inbox",
+  //   url: "/admin/inbox",
+  //   icon: "mail",
+  //   isActive: false,
+  //   items: [],
+  // },
+  // {
+  //   title: "Workspaces",
+  //   url: "#", // Placeholder as there is no direct link for the parent
+  //   icon: "workspace",
+  //   isActive: true,
+  //   items: [
+  //     {
+  //       title: "Portfolio",
+  //       url: "/admin/portfolio",
+  //       icon: "layer",
+  //       shortcut: ["m", "m"],
+  //     },
+  //     {
+  //       title: "Resume",
+  //       url: "/admin/resume",
+  //       icon: "profile",
+  //       shortcut: ["m", "m"],
+  //     },
+  //   ],
+  // },
+  // {
+  //   title: "Tracker",
+  //   url: "/admin/tracker",
+  //   icon: "exclusive",
+  //   isActive: false,
+  //   items: [],
+  //   // Require organization to be active
+  //   access: { requireOrg: true },
+  //   // Alternative: require specific permission
+  //   // access: { requireOrg: true, permission: 'org:teams:view' }
+  // },
 ];

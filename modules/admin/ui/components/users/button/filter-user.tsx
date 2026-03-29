@@ -13,7 +13,7 @@ import {
   SheetTrigger,
 } from "@/components/ui/sheet";
 import { ButtonWithIcon } from "@/components/custom/button-with-icon";
-import { Check, Filter, Funnel, FunnelPlus, X } from "lucide-react";
+import { Check, Funnel, FunnelPlus, X } from "lucide-react";
 import { Toggle } from "@/components/ui/toggle";
 import { roleList } from "../../../config/auth/role.user";
 import { useEffect } from "react";
@@ -57,7 +57,7 @@ export default function FilterUsers({
           {/* role list */}
           <div className="flex flex-col gap-2">
             <h1>Role:</h1>
-            <div className="flex items-center gap-2">
+            <div className="space-y-2 space-x-2">
               {roleList.map((role) => (
                 <Toggle
                   key={role}
