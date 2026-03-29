@@ -100,7 +100,7 @@ const resetPasswordMutation = useMutation(
                 <FormItem>
                   <FormLabel>
                     <LockKeyhole className="inline" size={15} />
-                    Password
+                    New Password
                   </FormLabel>
                   <FormControl>
                     <PasswordInput
@@ -109,7 +109,7 @@ const resetPasswordMutation = useMutation(
                         field.onChange(e);
                         console.log(form.formState.errors)
                       }}
-                      placeholder="Enter your password"
+                      placeholder="Enter your new password"
                       required
                       disabled={resetPasswordMutation.isPending}
                       {...{ showRules: true, showStrength: true }}
@@ -125,13 +125,13 @@ const resetPasswordMutation = useMutation(
                 <FormItem>
                   <FormLabel>
                     <LockKeyhole className="inline" size={15} />
-                    Confirm Password
+                    Confirm New Password
                   </FormLabel>
                   <FormControl>
                     <PasswordInput
                       value={field.value}
                       onChange={field.onChange}
-                      placeholder="Confirm your password"
+                      placeholder="Confirm your new password"
                       required
                       disabled={resetPasswordMutation.isPending}
                     />

@@ -1,10 +1,16 @@
 import {z} from 'zod';
 import { roleEnum } from '../form-schema';
+import { roleList } from '@/modules/admin/ui/config/auth/role.user';
 
 export const getUserSchema = z.object({
   limit: z.number().min(1).max(100).default(10),
   page: z.number().min(1).default(1),
   search: z.string().optional(),
+  rolesFilter: z.array(z.enum(roleList)).default([]).optional(),
+  bannedFilter: z.boolean().optional(),
+  verifiedFilter: z.boolean().optional(),
+  sortBy: z.enum(["name", "email", "createdAt", "updatedAt"]).default("updatedAt").optional(),
+  sortDirection: z.enum(["asc", "desc"]).optional(),
 });
 
 export const editUserSchema = z.object({

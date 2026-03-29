@@ -25,6 +25,11 @@ export const userRouter = createTRPCRouter({
   get: adminProcedure.input(getUserSchema).query(async ({ ctx, input }) => {
     const currentPage = input.page || 1;
     const limit = input.limit || 10;
+    const rolesFilter = input.rolesFilter || [];
+    const banned = input.bannedFilter || undefined;
+    const verified = input.verifiedFilter || undefined;
+    const sortDirection = input.sortDirection || "desc";
+    const sortBy = input.sortBy || "updatedAt";
     const search = input.search || "";
     const skip = (currentPage - 1) * limit;
     const userTotal = await ctx.db.user.count({
@@ -32,6 +37,19 @@ export const userRouter = createTRPCRouter({
         NOT: {
           id: ctx.session.user.id,
         },
+        role: rolesFilter.length > 0 ? { in: rolesFilter } : undefined,
+        banned:
+          banned === null
+            ? undefined
+            : {
+                equals: banned,
+              },
+        emailVerified:
+          verified === null
+            ? undefined
+            : {
+                equals: verified,
+              },
         OR: [
           {
             name: {
@@ -55,6 +73,19 @@ export const userRouter = createTRPCRouter({
         NOT: {
           id: ctx.session.user.id,
         },
+        role: rolesFilter.length > 0 ? { in: rolesFilter } : undefined,
+        banned:
+          banned === null
+            ? undefined
+            : {
+                equals: banned,
+              },
+        emailVerified:
+          verified === null
+            ? undefined
+            : {
+                equals: verified,
+              },
         OR: [
           {
             name: {
@@ -71,7 +102,7 @@ export const userRouter = createTRPCRouter({
         ],
       },
       orderBy: {
-        updatedAt: "desc",
+        [sortBy]: sortDirection,
       },
     });
     const hasNextPage = skip + users.length < userTotal;

@@ -55,11 +55,15 @@ interface DataTableProps<TData, TValue> {
   onPrevPage: () => void;
   onSearchChange: (search: string) => void;
   onPageChange: (page: number) => void;
+  filterComponents?: React.ReactNode;
+  sortByComponents?: React.ReactNode;
 }
 
 export function DataTableTemplate({
   columns,
   data,
+  filterComponents,
+  sortByComponents,
   metadata,
   searchPlaceHolder,
   isLoading = true,
@@ -100,32 +104,40 @@ export function DataTableTemplate({
             />
           </InputWithIcon>
         </Label>
-        {/* toggle column visibility */}
-        <DropdownMenu>
-          <DropdownMenuTrigger asChild>
-            <Button variant="outline">
-              Columns <ChevronDown className="ml-2 size-4" />
-            </Button>
-          </DropdownMenuTrigger>
-          <DropdownMenuContent align="end">
-            {table
-              .getAllColumns()
-              .filter((column) => column.getCanHide())
-              .map((column) => (
-                <DropdownMenuCheckboxItem
-                  checked={column.getIsVisible()}
-                  className="capitalize"
-                  key={column.id}
-                  onSelect={(e) => e.preventDefault()}
-                  onCheckedChange={(value) => column.toggleVisibility(!!value)}
-                >
-                  {typeof column.columnDef.header === "string"
-                    ? column.columnDef.header
-                    : column.id}
-                </DropdownMenuCheckboxItem>
-              ))}
-          </DropdownMenuContent>
-        </DropdownMenu>
+        <div className="flex items-center gap-2">
+          {/* sort button */}
+          {sortByComponents}
+          {/* filter button */}
+          {filterComponents}
+          {/* toggle column visibility */}
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Button variant="outline">
+                Columns <ChevronDown className="ml-2 size-4" />
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end">
+              {table
+                .getAllColumns()
+                .filter((column) => column.getCanHide())
+                .map((column) => (
+                  <DropdownMenuCheckboxItem
+                    checked={column.getIsVisible()}
+                    className="capitalize"
+                    key={column.id}
+                    onSelect={(e) => e.preventDefault()}
+                    onCheckedChange={(value) =>
+                      column.toggleVisibility(!!value)
+                    }
+                  >
+                    {typeof column.columnDef.header === "string"
+                      ? column.columnDef.header
+                      : column.id}
+                  </DropdownMenuCheckboxItem>
+                ))}
+            </DropdownMenuContent>
+          </DropdownMenu>
+        </div>
       </div>
       {/* table component start */}
       <div className="overflow-hidden rounded-md border w-full ">
