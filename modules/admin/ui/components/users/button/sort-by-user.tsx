@@ -45,7 +45,7 @@ export default function SortByUsers({
       
       <Select onValueChange={setSortBy} defaultValue={sortBy}>
         <SelectTrigger>
-          <SelectValue placeholder={`${sortBy}` || "Sort By"}/>
+          <SelectValue placeholder={`${sortBy}` || "Sort By"} />
         </SelectTrigger>
         <SelectContent>
           <SelectGroup>

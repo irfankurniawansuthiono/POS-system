@@ -36,11 +36,18 @@ export default function FilterUsers({
   useEffect(() => {
     console.log(rolesFilter);
   }, [rolesFilter]);
+  const filtersCount = {
+    roles: rolesFilter.length,
+    banned: bannedFilter ? 1 : 0,
+    verified: verifiedFilter ? 1 : 0,
+  }
+  const filterTotal = Object.values(filtersCount).reduce((a, b) => a + b, 0);
   return (
     <Sheet>
       <SheetTrigger asChild>
         <ButtonWithIcon variant="outline" startIcon={<FunnelPlus />}>
-          Filter
+          Filters
+          <span className="p-0 m-0">({filterTotal})</span>
         </ButtonWithIcon>
       </SheetTrigger>
       <SheetContent>
