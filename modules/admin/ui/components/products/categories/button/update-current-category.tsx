@@ -1,6 +1,6 @@
 "use client";
 import { ButtonWithIcon } from "@/components/custom/button-with-icon";
-import { FilePlus, Folder, FolderPlus } from "lucide-react";
+import { FilePenLine, Folder } from "lucide-react";
 import {
   Dialog,
   DialogClose,
@@ -9,7 +9,6 @@ import {
   DialogFooter,
   DialogHeader,
   DialogTitle,
-  DialogTrigger,
 } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import {
@@ -89,9 +88,9 @@ export default function UpdateCurrentCategory({
         <Form {...form}>
           <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
             <DialogHeader>
-              <DialogTitle>Edit Category</DialogTitle>
+              <DialogTitle>Edit {level > 0 ? "Sub Category" : "Category"}</DialogTitle>
               <DialogDescription>
-               Edit category or sub category for {parentName}
+               Edit {level > 0 ? "Sub Category" : "Category"} For {parentName}
               </DialogDescription>
             </DialogHeader>
             {error && (
@@ -107,11 +106,11 @@ export default function UpdateCurrentCategory({
                 <FormItem>
                   <FormLabel>
                     <Folder className="inline" size={15} />
-                    New Sub Category Name
+                    Edit {level > 0 ? "Sub Category" : "Category"}
                   </FormLabel>
                   <FormControl>
                     <Input
-                      placeholder="Enter sub category name"
+                      placeholder={level > 0 ? "Enter sub category name" : "Enter category name"}
                       {...field}
                       disabled={editCategoryMutation.isPending}
                     />
@@ -133,7 +132,7 @@ export default function UpdateCurrentCategory({
               <ButtonWithIcon
                 type="submit"
                 startIcon={
-                  editCategoryMutation.isPending ? <Spinner /> : <FilePlus />
+                  editCategoryMutation.isPending ? <Spinner /> : <FilePenLine />
                 }
                 className={`${
                   editCategoryMutation.isPending || !form.formState.isValid

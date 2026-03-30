@@ -9,28 +9,38 @@ export const categoryRouter = createTRPCRouter({
   create: withRole("superadmin", "admin")
     .input(addCategorySchema)
     .mutation(async ({ input, ctx }) => {
-      const parentIndex = await ctx.db.category.findUnique({
-        where: {
-          id: input.parentId,
-        },
-        select: {
-          categoryIndex: true,
-        },
-      });
-      if (parentIndex) {
-        if (parentIndex.categoryIndex + 1 > 4)
-          throw new Error("You cannot add more than 5 categories");
-        const newCategory = await ctx.db.category.create({
-          data: {
-            name: input.name,
-            categoryIndex: parentIndex.categoryIndex + 1 || 0,
-            parentId: input.parentId,
+      if (input.parentId) {
+        const parentIndex = await ctx.db.category.findUnique({
+          where: {
+            id: input.parentId,
+          },
+          select: {
+            categoryIndex: true,
           },
         });
-        return newCategory;
-      } else {
-        throw new Error("Parent category not found");
+        if (parentIndex) {
+          if (parentIndex.categoryIndex + 1 > 4)
+            throw new Error("You cannot add more than 5 categories");
+          const newCategory = await ctx.db.category.create({
+            data: {
+              name: input.name,
+              categoryIndex: parentIndex.categoryIndex + 1,
+              parentId: input.parentId,
+            },
+          });
+          return newCategory;
+        } else {
+          throw new Error("Parent Category not found");
+        }
       }
+      const newCategory = await ctx.db.category.create({
+        data: {
+          name: input.name,
+          parentId: null,
+          categoryIndex: 0,
+        },
+      });
+      return newCategory;
     }),
   editParentId: withRole("superadmin", "admin")
     .input(editParentCategorySchema)

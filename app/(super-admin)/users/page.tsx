@@ -14,7 +14,6 @@ export default function UsersPage() {
   
   return (
     <PageContainer
-      scrollable={false}
       pageTitle="Users"
       pageDescription="Manage user accounts here"
       pageHeaderAction={<AddUser/>}

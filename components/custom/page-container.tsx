@@ -29,7 +29,7 @@ function PageSkeleton() {
 
 export default function PageContainer({
   children,
-  scrollable = true,
+  scrollable = false,
   isloading = false,
   access = true,
   accessFallback,

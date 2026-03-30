@@ -54,14 +54,14 @@ export default function AddCategories() {
         appToast.success("Category created successfully!");
       },
       onError: (err) => {
-        // jika eror name unique dari prisma client
+        // if eror name unique name from prisma client 
         if (err.message.includes("Unique constraint failed on the fields")) {
           setError("Category name already exists!");
           appToast.error("Category name already exists!");
           return;
         }
         setError(err.message);
-        appToast.error("Something went wrong!");
+        appToast.error(err.message);
       },
     }),
   );
