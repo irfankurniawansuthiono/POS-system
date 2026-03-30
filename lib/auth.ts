@@ -1,9 +1,10 @@
 import { betterAuth } from "better-auth";
 import { prismaAdapter } from "better-auth/adapters/prisma";
-import { admin } from "better-auth/plugins";
+import { admin as adminPlugin } from "better-auth/plugins";
 // import { Resend } from "resend";
 import prisma from "@/lib/prisma";
 import config from "@/lib/config-env";
+import { superadmin, admin } from "./permissions";
 
 const isProduction = process.env.NODE_ENV === "production";
 // const resend = new Resend(config.env.resendApiKey);
@@ -91,5 +92,14 @@ export const auth = betterAuth({
       path: "/",
     },
   },
-  plugins: [admin()],
+  plugins: [
+    adminPlugin({
+      defaultRole: "user", // role default saat register
+      roles: {
+        superadmin,
+        admin,
+      },
+      adminRoles: ["superadmin", "admin"],
+    }),
+  ],
 });

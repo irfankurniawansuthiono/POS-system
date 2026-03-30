@@ -4,7 +4,7 @@ import superjson from "superjson";
 import { cache } from "react";
 import { auth } from "@/lib/auth";
 import prisma from "@/lib/prisma";
-import { role } from "@/modules/admin/ui/config/auth/role.user";
+import { role, RoleUser } from "@/modules/admin/ui/config/auth/role.user";
 export const createTRPCContext = cache(async (opts?: { req: Request }) => {
   /**
    * @see: https://trpc.io/docs/server/context
@@ -42,17 +42,10 @@ export const protectedProcedure = baseProcedure.use(async ({ ctx, next }) => {
     ctx: { ...ctxWithIp, session, ip: ctxWithIp.ip, db: prisma, auth },
   });
 });
-export const superAdminOrAdminProcedure = protectedProcedure.use(
-  async ({ ctx, next }) => {
-    if (
-      ctx.session.user?.role !== role.admin &&
-      ctx.session.user?.role !== role.superadmin
-    ) {
-      throw new TRPCError({
-        code: "FORBIDDEN",
-        message: "Anda tidak memiliki akses admin",
-      });
+export const withRole = (...roles: RoleUser[]) =>
+  protectedProcedure.use(({ ctx, next }) => {
+    if (!roles.includes(ctx.session.user?.role as RoleUser)) {
+      throw new TRPCError({ code: "FORBIDDEN" });
     }
     return next();
-  },
-);
+  });

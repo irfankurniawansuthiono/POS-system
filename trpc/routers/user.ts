@@ -1,15 +1,16 @@
-import { createTRPCRouter, superAdminOrAdminProcedure } from "@/trpc/init";
+import { createTRPCRouter, withRole } from "@/trpc/init";
 import { addUserSchema, resetPasswordAdminSchema } from "@/lib/form-schema";
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import {
   deleteUserSchema,
   editUserSchema,
   getUserSchema,
+  revokeSessionUserSchema,
 } from "@/lib/query-schema/user-schema-api";
 import { headers } from "next/headers";
 
 export const userRouter = createTRPCRouter({
-  create: superAdminOrAdminProcedure
+  create: withRole("superadmin")
     .input(addUserSchema)
     .mutation(async ({ input, ctx }) => {
       const newUser = await ctx.auth.api.createUser({
@@ -22,7 +23,7 @@ export const userRouter = createTRPCRouter({
       });
       return newUser;
     }),
-  get: superAdminOrAdminProcedure
+  get: withRole("superadmin")
     .input(getUserSchema)
     .query(async ({ ctx, input }) => {
       const currentPage = input.page || 1;
@@ -123,7 +124,7 @@ export const userRouter = createTRPCRouter({
 
       return { users, meta };
     }),
-  delete: superAdminOrAdminProcedure
+  delete: withRole("superadmin")
     .input(deleteUserSchema)
     .mutation(async ({ ctx, input }) => {
       const deletedUser = await ctx.auth.api.removeUser({
@@ -134,7 +135,7 @@ export const userRouter = createTRPCRouter({
       });
       return deletedUser;
     }),
-  resetPassword: superAdminOrAdminProcedure
+  resetPassword: withRole("superadmin")
     .input(resetPasswordAdminSchema)
     .mutation(async ({ ctx, input }) => {
       const { status } = await ctx.auth.api.setUserPassword({
@@ -147,7 +148,7 @@ export const userRouter = createTRPCRouter({
 
       return status;
     }),
-  edit: superAdminOrAdminProcedure
+  edit: withRole("superadmin")
     .input(editUserSchema)
     .mutation(async ({ input, ctx }) => {
       const data = await ctx.auth.api.adminUpdateUser({
@@ -158,6 +159,17 @@ export const userRouter = createTRPCRouter({
             email: input.email,
             role: input.role as any,
           },
+        },
+        headers: await headers(),
+      });
+      return data;
+    }),
+  revokeSession: withRole("superadmin")
+    .input(revokeSessionUserSchema)
+    .mutation(async ({ ctx, input }) => {
+      const data = await ctx.auth.api.revokeUserSessions({
+        body: {
+          userId: input.id, // required
         },
         headers: await headers(),
       });

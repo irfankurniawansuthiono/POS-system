@@ -1,11 +1,11 @@
 import { Icons } from "@/components/custom/icons";
 
 export interface PermissionCheck {
-  permission?: string;
-  plan?: string;
-  feature?: string;
+  // permission?: Record<string, string[]>;
+  // plan?: string;
+  // feature?: string;
   role?: string | string[];
-  requireOrg?: boolean;
+  // requireOrg?: boolean;
 }
 
 export interface NavItem {

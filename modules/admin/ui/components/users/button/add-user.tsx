@@ -78,7 +78,7 @@ export default function AddUser() {
     <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
       <DialogTrigger asChild>
         <ButtonWithIcon startIcon={<UserPlus />} variant="default">
-          Add
+          Add New User
         </ButtonWithIcon>
       </DialogTrigger>
       <DialogContent className="sm:max-w-sm">

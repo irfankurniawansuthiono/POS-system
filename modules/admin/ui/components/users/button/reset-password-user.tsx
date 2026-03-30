@@ -49,7 +49,19 @@ export default function ResetPasswordUser({ id }: { id: string }) {
       confirmPassword: "",
     },
   });
-
+const revokeUserSessions = useMutation(
+  trpc.user.revokeSession.mutationOptions({
+    onSuccess: () => {
+      queryClient.invalidateQueries(trpc.user.get.queryFilter());
+      appToast.success("User sessions revoked successfully!");
+    },
+    onError: (error) => {
+      appToast.error("Something went wrong!");
+      console.error(error);
+    }
+  }
+)
+)
 const resetPasswordMutation = useMutation(
       trpc.user.resetPassword.mutationOptions({
        onSuccess: () => {
@@ -58,6 +70,7 @@ const resetPasswordMutation = useMutation(
         queryClient.invalidateQueries(trpc.user.get.queryFilter());
         form.reset();
         appToast.success("Password reset successfully!");
+          revokeUserSessions.mutate({id});
        },
        onError: (error) => {
         setError(error.message);

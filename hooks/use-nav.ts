@@ -3,7 +3,6 @@
 import { useMemo } from "react";
 import type { NavItem } from "@/types";
 import { useSession } from "@/lib/auth-client";
-
 export function useFilteredNavItems(items: NavItem[]) {
   const { data } = useSession();
   const userRole = data?.user?.role;
@@ -23,10 +22,16 @@ export function useFilteredNavItems(items: NavItem[]) {
         return access.role === userRole;
       }
 
-      if (access.plan || access.feature) {
-        console.warn(`Plan/feature checks require server-side validation.`);
-        return true;
-      }
+      // if (access.plan || access.feature) {
+      //   console.warn(`Plan/feature checks require server-side validation.`);
+      //   return true;
+      // }
+
+      // // permission checking
+      // if (access.permission) {
+      //   console.warn(`Permission checks require server-side validation.`);
+      //   return true;
+      // }
 
       return true;
     };

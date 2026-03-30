@@ -49,7 +49,10 @@ export const navItems: NavItem[] = [
     icon: "users",
     isActive: false,
     items: [],
-    access: { role: role.superadmin},
+    shortcut: ["u", "u"],
+    access: {
+      role: [role.superadmin],
+    },
   },
   {
     title: "Products",

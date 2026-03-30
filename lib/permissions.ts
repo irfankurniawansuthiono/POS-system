@@ -1,16 +1,18 @@
-// lib/permissions.ts
 import { createAccessControl } from "better-auth/plugins/access";
+import { adminAc, defaultStatements } from "better-auth/plugins/admin/access"; // if you want to merge default admin statements
 
-const statement = {
-  _: ["_"], // dummy, hapus nanti kalau sudah ada real permissions
+const statements = {
+  ...defaultStatements,
 } as const;
 
-const ac = createAccessControl(statement);
+const ac = createAccessControl(statements);
 
-const user = ac.newRole({});
-const admin = ac.newRole({ _: ["_"] });
-const cashier = ac.newRole({});
-const warehouse = ac.newRole({});
-const finance = ac.newRole({});
+export const admin = ac.newRole({
+  ...statements,
+});
+export const superadmin = ac.newRole({
+  ...adminAc.statements,
+  ...statements,
+});
 
-export { ac, user, admin, cashier, warehouse, finance };
+export default ac;

@@ -80,10 +80,23 @@ export const resetPasswordAdminSchema = z
     path: ["confirmPassword"],
   });
 
+// Type user schema
 export const roleEnum = z.enum(roleList);
 
 export const addUserSchema = registerSchema.extend({
   role: roleEnum,
+});
+
+// Type category schema
+export const addCategorySchema = z.object({
+  name: z.string().min(2, "Category name must be at least 2 characters"),
+  parentId: z.string().optional(),
+  categoryIndex: z.number().optional(),
+});
+
+export const editCategorySchema = addCategorySchema.extend({
+  id: z.string().optional(),
+  name: z.string().min(2, "Category name must be at least 2 characters"),
 });
 
 // Type auth form
@@ -94,4 +107,9 @@ export type ResetPasswordAdminFormValues = z.infer<
   typeof resetPasswordAdminSchema
 >;
 export type ForgotPasswordFormValues = z.infer<typeof forgotPasswordSchema>;
+// Type user form
 export type AddUserFormValues = z.infer<typeof addUserSchema>;
+
+// Type category form
+export type AddCategoryFormValues = z.infer<typeof addCategorySchema>;
+export type EditCategoryFormValues = z.infer<typeof editCategorySchema>;

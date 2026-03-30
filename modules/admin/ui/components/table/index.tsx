@@ -31,6 +31,7 @@ import { useState } from "react";
 import { Label } from "@/components/ui/label";
 import { InputWithIcon } from "@/components/custom/input-with-icon";
 import { Search } from "lucide-react";
+import { appToast } from "@/components/custom/app-toast";
 
 /* eslint-disable @typescript-eslint/no-explicit-any */
 interface DataTableProps<TData, TValue> {
@@ -50,6 +51,8 @@ interface DataTableProps<TData, TValue> {
     previousPage: number | null;
     totalPages: number;
   };
+  isError: boolean;
+  error?: any;
   onLimitChange: (limit: number) => void;
   onNextPage: () => void;
   onPrevPage: () => void;
@@ -67,6 +70,8 @@ export function DataTableTemplate({
   metadata,
   searchPlaceHolder,
   isLoading = true,
+  isError = false,
+  error,
   onNextPage,
   onPrevPage,
   onLimitChange,
@@ -89,6 +94,11 @@ export function DataTableTemplate({
       },
     },
   });
+  if (isError) {
+    return (
+      appToast.error(error?.message || "Something went wrong! Please try again.")
+    );
+  }
   return (
     <div className="space-y-4">
       <div className="flex items-center justify-between">

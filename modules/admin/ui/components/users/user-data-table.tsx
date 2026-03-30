@@ -24,9 +24,9 @@ export default function UsersDataTable() {
 
   const debouncedSearch = useDebounce(search, 500);
 
-  const { data , isLoading } = useQuery(trpc.user.get.queryOptions({ limit, page, search: debouncedSearch, rolesFilter, bannedFilter, verifiedFilter, sortBy, sortDirection}));
+  const { data , isLoading, isError, error} = useQuery(trpc.user.get.queryOptions({ limit, page, search: debouncedSearch, rolesFilter, bannedFilter, verifiedFilter, sortBy, sortDirection}));
 
   return (
-    <DataTableTemplate sortByComponents={<SortByUsers sortBy={sortBy} setSortBy={setSortBy} sortDirection={sortDirection} setSortDirection={setSortDirection} />} filterComponents={<FilterUsers  rolesFilter={rolesFilter} setRolesFilter={setRolesFilter} bannedFilter={bannedFilter} setBannedFilter={setBannedFilter} verifiedFilter={verifiedFilter} setVerifiedFilter={setVerifiedFilter} />} onPageChange={(page: number) => setPage(page)}columns={columns(page, limit)} data={data?.users || []} searchPlaceHolder="Search by name or email"  metadata={data?.meta} isLoading={isLoading} onNextPage={() => setPage(page + 1)} onPrevPage={() => setPage(page - 1)} onLimitChange={(limit) => setLimit(limit)} onSearchChange={(search) => setSearch(search)} />
+    <DataTableTemplate isError={isError} error={error} sortByComponents={<SortByUsers sortBy={sortBy} setSortBy={setSortBy} sortDirection={sortDirection} setSortDirection={setSortDirection} />} filterComponents={<FilterUsers  rolesFilter={rolesFilter} setRolesFilter={setRolesFilter} bannedFilter={bannedFilter} setBannedFilter={setBannedFilter} verifiedFilter={verifiedFilter} setVerifiedFilter={setVerifiedFilter} />} onPageChange={(page: number) => setPage(page)}columns={columns(page, limit)} data={data?.users || []} searchPlaceHolder="Search by name or email"  metadata={data?.meta} isLoading={isLoading} onNextPage={() => setPage(page + 1)} onPrevPage={() => setPage(page - 1)} onLimitChange={(limit) => setLimit(limit)} onSearchChange={(search) => setSearch(search)} />
   );
 }
