@@ -16,7 +16,7 @@ const inputVariants = cva(
     variants: {
       variant: {
         outline: cn(
-          "rounded-md",
+          "rounded-md border",
           "has-focus:border-ring has-focus-visible:border-ring has-focus-visible:ring-ring/50 has-focus-visible:ring-[3px]",
           "has-aria-invalid:ring-destructive/20 has-aria-invalid:border-destructive dark:has-aria-invalid:ring-destructive/40 has-aria-invalid:border-1",
         ),

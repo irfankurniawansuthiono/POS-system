@@ -62,7 +62,7 @@ export default function UpdateCurrentCategory({
   const editCategoryMutation = useMutation(
     trpc.category.edit.mutationOptions({
       onSuccess: () => {
-        queryClient.invalidateQueries(trpc.category.get.queryOptions());
+        queryClient.invalidateQueries(trpc.category.get.queryFilter());
         form.reset();
         setDialogOpen(false);
         setError(undefined);

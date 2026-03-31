@@ -47,7 +47,7 @@ export default function AddCategories() {
   const createCategoryMutation = useMutation(
     trpc.category.create.mutationOptions({
       onSuccess: () => {
-        queryClient.invalidateQueries(trpc.category.get.queryOptions());
+        queryClient.invalidateQueries(trpc.category.get.queryFilter());
         form.reset();
         setDialogOpen(false);
         setError(undefined);

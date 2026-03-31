@@ -45,13 +45,13 @@ export function DataTablePagination<TData>({
   const start = total === 0 ? 0 : (currentPage - 1) * limit + 1;
   const end = Math.min(currentPage * limit, total);
   return (
-    <div className="flex items-center justify-between px-1">
+    <div className="flex items-center flex-col md:flex-row gap-2 md:px-1">
       <div className="flex-1 text-sm text-muted-foreground">
         Showing <span className="font-medium">{start}</span> to{" "}
         <span className="font-medium">{end}</span> of{" "}
         <span className="font-medium">{total}</span> entries
       </div>
-      <div className="flex items-center space-x-6 lg:space-x-8">
+      <div className="flex w-full md:w-fit space-x-6 lg:space-x-8 justify-between">
         <div className="flex items-center space-x-2">
           <p className="text-sm font-medium mr-2">Rows per page</p>
           <Select
@@ -71,7 +71,7 @@ export function DataTablePagination<TData>({
             </SelectContent>
           </Select>
         </div>
-        <div className="flex w-25 items-center justify-center text-sm font-medium ml-2">
+        <div className="hidden md:flex w-25 items-center justify-center text-sm font-medium ml-2">
           Page {totalPages === 0 ? 0 : currentPage} of{" "}
           {totalPages}
         </div>
@@ -117,6 +117,10 @@ export function DataTablePagination<TData>({
             <ChevronsRight />
           </Button>
         </div>
+        </div>
+         <div className="flex md:hidden items-start w-full text-sm font-medium">
+          Page {totalPages === 0 ? 0 : currentPage} of{" "}
+          {totalPages}
       </div>
     </div>
   );

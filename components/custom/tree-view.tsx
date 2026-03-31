@@ -5,6 +5,7 @@ import * as AccordionPrimitive from "@radix-ui/react-accordion";
 import { ChevronRight } from "lucide-react";
 import { cva } from "class-variance-authority";
 import { cn } from "@/lib/utils";
+import { highlightText } from "@/lib/highlight-text";
 import {
   Tooltip,
   TooltipContent,
@@ -53,9 +54,10 @@ type TreeRenderItemParams = {
 
 type TreeProps = React.HTMLAttributes<HTMLDivElement> & {
   data: TreeDataItem[] | TreeDataItem;
+  query?: string;
   initialSelectedItemId?: string;
   onSelectChange?: (item: TreeDataItem | undefined) => void;
-  expandAll?: boolean;
+  expandAll: boolean;
   defaultNodeIcon?: React.ComponentType<{ className?: string }>;
   defaultLeafIcon?: React.ComponentType<{ className?: string }>;
   defaultNodeOpenIcon?: React.ComponentType<{ className?: string }>;
@@ -67,9 +69,10 @@ const TreeView = React.forwardRef<HTMLDivElement, TreeProps>(
   (
     {
       data,
+      query,
       initialSelectedItemId,
       onSelectChange,
-      expandAll,
+      expandAll = false,
       defaultLeafIcon,
       defaultNodeIcon,
       defaultNodeOpenIcon,
@@ -145,6 +148,8 @@ const TreeView = React.forwardRef<HTMLDivElement, TreeProps>(
     return (
       <div className={cn("overflow-hidden relative", className)}>
         <TreeItem
+          expandAll={expandAll}
+          query={query}
           data={data}
           ref={ref}
           selectedItemId={selectedItemId}
@@ -174,6 +179,7 @@ TreeView.displayName = "TreeView";
 
 type TreeItemProps = TreeProps & {
   selectedItemId?: string;
+  query?: string;
   handleSelectChange: (item: TreeDataItem | undefined) => void;
   expandedItemIds: string[];
   defaultNodeIcon?: React.ComponentType<{ className?: string }>;
@@ -189,6 +195,7 @@ const TreeItem = React.forwardRef<HTMLDivElement, TreeItemProps>(
     {
       className,
       data,
+      query,
       selectedItemId,
       handleSelectChange,
       expandedItemIds,
@@ -221,6 +228,7 @@ const TreeItem = React.forwardRef<HTMLDivElement, TreeItemProps>(
                   <TooltipTrigger asChild>
                     <TreeNode
                       item={item}
+                      query={query}
                       level={level ?? 0}
                       selectedItemId={selectedItemId}
                       expandedItemIds={expandedItemIds}
@@ -232,6 +240,7 @@ const TreeItem = React.forwardRef<HTMLDivElement, TreeItemProps>(
                       handleDrop={handleDrop}
                       draggedItem={draggedItem}
                       renderItem={renderItem}
+                      expandAll={expandAll}
                     />
                   </TooltipTrigger>
                   <TooltipContent>
@@ -247,6 +256,7 @@ const TreeItem = React.forwardRef<HTMLDivElement, TreeItemProps>(
                     <TreeLeaf
                       item={item}
                       level={level ?? 0}
+                      query={query}
                       selectedItemId={selectedItemId}
                       handleSelectChange={handleSelectChange}
                       defaultLeafIcon={defaultLeafIcon}
@@ -275,6 +285,7 @@ TreeItem.displayName = "TreeItem";
 
 const TreeNode = ({
   item,
+  expandAll,
   handleSelectChange,
   expandedItemIds,
   selectedItemId,
@@ -285,9 +296,11 @@ const TreeNode = ({
   handleDrop,
   draggedItem,
   renderItem,
+  query,
   level = 0,
 }: {
   item: TreeDataItem;
+  expandAll: boolean;
   handleSelectChange: (item: TreeDataItem | undefined) => void;
   expandedItemIds: string[];
   selectedItemId?: string;
@@ -299,15 +312,27 @@ const TreeNode = ({
   draggedItem: TreeDataItem | null;
   renderItem?: (params: TreeRenderItemParams) => React.ReactNode;
   level?: number;
+  query?: string;
 }) => {
-  const [value, setValue] = React.useState(
-    expandedItemIds.includes(item.id) ? [item.id] : [],
-  );
+  // const [value, setValue] = React.useState(
+  //   expandedItemIds.includes(item.id) ? [item.id] : [],
+  // );
+  const [value, setValue] = React.useState<string[]>([]);
   const [isDragOver, setIsDragOver] = React.useState(false);
   const hasChildren = !!item.children?.length;
   const isSelected = selectedItemId === item.id;
   const isOpen = value.includes(item.id);
 
+  // set expanded state value based on expandAll and expandedItemIds or nothing
+  React.useEffect(() => {
+    if (expandAll) {
+      setValue([item.id]);
+    } else if (expandedItemIds.includes(item.id)) {
+      setValue([item.id]);
+    } else {
+      setValue([]);
+    }
+  }, [expandAll, expandedItemIds, item.id]);
   const onDragStart = (e: React.DragEvent) => {
     if (!item.draggable) {
       e.preventDefault();
@@ -379,7 +404,9 @@ const TreeNode = ({
                       isOpen={isOpen}
                       default={isOpen ? defaultNodeOpenIcon : defaultNodeIcon}
                     />
-                    <span className="text-sm truncate">{item.name}</span>
+                    <span className="text-sm truncate">
+                      {query ? highlightText(item.name, query) : item.name}
+                    </span>
                     <TreeActions isSelected={isSelected}>
                       {item.actions}
                     </TreeActions>
@@ -401,6 +428,8 @@ const TreeNode = ({
         </Tooltip>
         <AccordionContent className="ml-4 pl-1 border-l">
           <TreeItem
+            expandAll={expandAll}
+            query={query}
             data={item.children ? item.children : item}
             selectedItemId={selectedItemId}
             handleSelectChange={handleSelectChange}
@@ -425,6 +454,7 @@ const TreeLeaf = React.forwardRef<
   React.HTMLAttributes<HTMLDivElement> & {
     item: TreeDataItem;
     level: number;
+    query?: string;
     selectedItemId?: string;
     handleSelectChange: (item: TreeDataItem | undefined) => void;
     defaultLeafIcon?: React.ComponentType<{ className?: string }>;
@@ -438,6 +468,7 @@ const TreeLeaf = React.forwardRef<
     {
       className,
       item,
+      query,
       level,
       selectedItemId,
       handleSelectChange,
@@ -528,7 +559,9 @@ const TreeLeaf = React.forwardRef<
                 isSelected={isSelected}
                 default={defaultLeafIcon}
               />
-              <span className="grow text-sm truncate">{item.name}</span>
+              <span className="grow text-sm truncate">
+                {query ? highlightText(item.name, query) : item.name}
+              </span>
               <TreeActions isSelected={isSelected && !item.disabled}>
                 {item.actions}
               </TreeActions>
@@ -549,8 +582,10 @@ TreeLeaf.displayName = "TreeLeaf";
 
 const AccordionTrigger = React.forwardRef<
   React.ElementRef<typeof AccordionPrimitive.Trigger>,
-  React.ComponentPropsWithoutRef<typeof AccordionPrimitive.Trigger> & { isOpen: boolean }
->(({ className, children,isOpen, ...props }, ref) => (
+  React.ComponentPropsWithoutRef<typeof AccordionPrimitive.Trigger> & {
+    isOpen: boolean;
+  }
+>(({ className, children, isOpen, ...props }, ref) => (
   <AccordionPrimitive.Header>
     <AccordionPrimitive.Trigger
       ref={ref}
@@ -560,10 +595,12 @@ const AccordionTrigger = React.forwardRef<
       )}
       {...props}
     >
-    <ChevronRight className={cn(
-        "h-4 w-4 shrink-0 transition-transform duration-200 text-accent-foreground/50 mr-1",
-        isOpen && "rotate-90"
-      )} />
+      <ChevronRight
+        className={cn(
+          "h-4 w-4 shrink-0 transition-transform duration-200 text-accent-foreground/50 mr-1",
+          isOpen && "rotate-90",
+        )}
+      />
       {children}
     </AccordionPrimitive.Trigger>
   </AccordionPrimitive.Header>

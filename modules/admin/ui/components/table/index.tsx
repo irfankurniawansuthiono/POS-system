@@ -101,12 +101,14 @@ export function DataTableTemplate({
   }
   return (
     <div className="space-y-4">
-      <div className="flex items-center justify-between">
+      <div className="flex gap-2 justify-between md:gap-0 md:flex-row flex-col items-start md:items-center">
         {/* search input with icon */}
-        <Label className="border rounded-md">
-          <InputWithIcon>
+        <Label>
+          <InputWithIcon variant={"outline"}>
             <Search size={16} />
             <input
+              disabled={isLoading}
+              className="disabled:cursor-not-allowed"
               type="search"
               data-slot="search"
               placeholder={searchPlaceHolder}
@@ -114,7 +116,7 @@ export function DataTableTemplate({
             />
           </InputWithIcon>
         </Label>
-        <div className="flex items-center gap-2">
+        <div className="flex gap-2 md:flex-row flex-col items-start md:items-center ">
           {/* sort button */}
           {sortByComponents}
           {/* filter button */}

@@ -10,6 +10,7 @@ import {
   FileText,
   FileUser,
   Mail,
+  Boxes,
 } from "lucide-react";
 
 export type SearchItem = {
@@ -37,10 +38,11 @@ export const searchItems: SearchItem[] = [
     shortcut: ["u", "u"],
   },
   {
-    title: "Inbox",
-    url: "/admin/inbox",
+    title: "Categories",
+    url: "/admin/products/categories",
     group: "Pages",
-    icon: Mail,
+    icon: Boxes,
+    shortcut: ["c", "c"],
   },
   {
     title: "Portfolio",
