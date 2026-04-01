@@ -99,6 +99,12 @@ export const editCategorySchema = addCategorySchema.extend({
   name: z.string().min(2, "Category name must be at least 2 characters"),
 });
 
+// type brand schema
+export const addBrandSchema = z.object({
+  name: z.string().min(2, "Brand name must be at least 2 characters"),
+  logoUrl: z.string().optional(),
+});
+
 // Type auth form
 export type LoginFormValues = z.infer<typeof loginSchema>;
 export type RegisterFormValues = z.infer<typeof registerSchema>;
@@ -113,3 +119,6 @@ export type AddUserFormValues = z.infer<typeof addUserSchema>;
 // Type category form
 export type AddCategoryFormValues = z.infer<typeof addCategorySchema>;
 export type EditCategoryFormValues = z.infer<typeof editCategorySchema>;
+
+// Type brand form
+export type AddBrandFormValues = z.infer<typeof addBrandSchema>;

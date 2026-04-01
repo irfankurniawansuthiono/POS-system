@@ -13,7 +13,7 @@ export default function CategoriesPage() {
   return (
     <PageContainer
       pageTitle="Categories"
-      pageDescription="Manage your product categories"
+      pageDescription="Manage product's categories"
       pageHeaderAction={<AddCategories />}
     >
       <CategoriesTreeView />

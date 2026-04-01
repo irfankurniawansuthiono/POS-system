@@ -11,6 +11,7 @@ import {
   FileUser,
   Mail,
   Boxes,
+  Ribbon,
 } from "lucide-react";
 
 export type SearchItem = {
@@ -42,6 +43,13 @@ export const searchItems: SearchItem[] = [
     url: "/admin/products/categories",
     group: "Pages",
     icon: Boxes,
+    shortcut: ["c", "c"],
+  },
+    {
+    title: "Brands",
+    url: "/admin/products/brands",
+    group: "Pages",
+    icon: Ribbon,
     shortcut: ["c", "c"],
   },
   {

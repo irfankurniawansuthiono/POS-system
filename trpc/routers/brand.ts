@@ -1,0 +1,85 @@
+import { createTRPCRouter, withRole } from "@/trpc/init";
+import { addBrandSchema } from "@/lib/form-schema";
+import { getBrandSchema } from "@/lib/query-schema/brand-schema-api";
+/* eslint-disable @typescript-eslint/no-explicit-any */
+export const brandRouter = createTRPCRouter({
+  create: withRole("superadmin", "admin")
+    .input(addBrandSchema)
+    .mutation(async ({ input, ctx }) => {
+      try {
+        const newBrand = await ctx.db.brand.create({
+          data: {
+            name: input.name,
+            logoUrl: input.logoUrl,
+          },
+        });
+        return newBrand;
+      } catch (err: any) {
+        // invalid contraint name
+        if (err.code === "P2002") {
+          throw new Error("Brand name already exists!");
+        }
+      }
+    }),
+  get: withRole("superadmin", "admin")
+    .input(getBrandSchema)
+    .query(async ({ ctx, input }) => {
+      const currentPage = input.page || 1;
+      const limit = input.limit || 10;
+      const search = input.search || "";
+      const hasLogo = input.hasLogo;
+      const sortDirection = input.sortDirection || "desc";
+      const sortBy = input.sortBy || "updatedAt";
+      const skip = (currentPage - 1) * limit;
+      const brandTotal = await ctx.db.brand.count({
+        where: {
+          OR: [
+            {
+              name: {
+                contains: search,
+                mode: "insensitive",
+              },
+            },
+          ],
+          ...(hasLogo === true && {
+            logoUrl: { not: null },
+          }),
+          ...(hasLogo === false && {
+            logoUrl: null,
+          }),
+        },
+      });
+      const brands = await ctx.db.brand.findMany({
+        skip,
+        take: limit,
+        where: {
+          OR: [
+            {
+              name: {
+                contains: search,
+                mode: "insensitive",
+              },
+            },
+          ],
+        },
+        orderBy: {
+          [sortBy]: sortDirection,
+        },
+      });
+      const hasNextPage = skip + brands.length < brandTotal;
+      const hasPreviousPage = skip > 0;
+      const totalPages = Math.ceil(brandTotal / limit);
+      const meta = {
+        total: brandTotal,
+        currentPage,
+        limit,
+        hasNextPage,
+        hasPreviousPage,
+        totalPages,
+        nextPage: hasNextPage ? currentPage + 1 : null,
+        previousPage: hasPreviousPage ? currentPage - 1 : null,
+      };
+
+      return { brands, meta };
+    }),
+});

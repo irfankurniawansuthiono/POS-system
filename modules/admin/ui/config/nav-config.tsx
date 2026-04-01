@@ -69,6 +69,14 @@ export const navItems: NavItem[] = [
         access: { role: [role.admin, role.superadmin] },
         shortcut: ["c", "c"],
       },
+      {
+        title: "Brands",
+        url: "/admin/products/brands",
+        isActive: false,
+        items: [],
+        access: { role: [role.admin, role.superadmin] },
+        shortcut: ["c", "c"],
+      },
     ],
   },
 
