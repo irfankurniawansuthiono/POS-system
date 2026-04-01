@@ -1,8 +1,36 @@
 import { createTRPCRouter, withRole } from "@/trpc/init";
-import { addBrandSchema } from "@/lib/form-schema";
-import { getBrandSchema } from "@/lib/query-schema/brand-schema-api";
+import { addBrandSchema, editBrandSchema } from "@/lib/form-schema";
+import {
+  deleteBrandSchema,
+  editStatusBrandSchema,
+  getBrandSchema,
+} from "@/lib/query-schema/brand-schema-api";
 /* eslint-disable @typescript-eslint/no-explicit-any */
 export const brandRouter = createTRPCRouter({
+  delete: withRole("superadmin", "admin")
+    .input(deleteBrandSchema)
+    .mutation(async ({ input, ctx }) => {
+      const deletedBrand = await ctx.db.brand.delete({
+        where: {
+          id: input.id,
+        },
+      });
+      return deletedBrand;
+    }),
+  edit: withRole("superadmin", "admin")
+    .input(editBrandSchema)
+    .mutation(async ({ input, ctx }) => {
+      const editedBrand = await ctx.db.brand.update({
+        where: {
+          id: input.id,
+        },
+        data: {
+          name: input.name,
+          logoUrl: input.logoUrl,
+        },
+      });
+      return editedBrand;
+    }),
   create: withRole("superadmin", "admin")
     .input(addBrandSchema)
     .mutation(async ({ input, ctx }) => {
@@ -20,6 +48,19 @@ export const brandRouter = createTRPCRouter({
           throw new Error("Brand name already exists!");
         }
       }
+    }),
+  setStatus: withRole("superadmin", "admin")
+    .input(editStatusBrandSchema)
+    .mutation(async ({ input, ctx }) => {
+      const editedBrandStatus = await ctx.db.brand.update({
+        where: {
+          id: input.id,
+        },
+        data: {
+          isActive: input.status,
+        },
+      });
+      return editedBrandStatus;
     }),
   get: withRole("superadmin", "admin")
     .input(getBrandSchema)

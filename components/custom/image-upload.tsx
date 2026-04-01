@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useCallback } from "react";
+import { useState, useCallback, useEffect } from "react";
 import Image from "next/image";
 import { X, Upload, ImagePlus, Loader2 } from "lucide-react";
 import { useDropzone } from "@uploadthing/react";
@@ -10,7 +10,6 @@ import { appToast } from "@/components/custom/app-toast";
 import { Label } from "../ui/label";
 
 // ==================== SINGLE IMAGE UPLOAD ====================
-
 interface SingleImageUploadProps {
   value?: string;
   onChange?: (url: string) => void;
@@ -18,8 +17,9 @@ interface SingleImageUploadProps {
   disabled?: boolean;
   className?: string;
   label?: string;
-  setFile: (file: File) => void;
-  isSubmitting: boolean;
+  setFile: (file: File | undefined) => void;
+  setBlobPreview: React.Dispatch<React.SetStateAction<string | null>>;
+  blobPreview: string | null;
 }
 /* eslint-disable @typescript-eslint/no-unused-vars */
 
@@ -29,14 +29,14 @@ export function SingleImageUpload({
   setFile,
   onRemove,
   disabled,
+  blobPreview,
+  setBlobPreview,
   label,
   className,
 }: SingleImageUploadProps) {
   /* eslint-disable @typescript-eslint/no-unused-vars */
   const [isUploading, setIsUploading] = useState(false);
-  const [blobPreview, setBlobPreview] = useState<string | null>(null);
   const [isDeleting, setIsDeleting] = useState(false);
-
 
   const onDrop = useCallback(
     (acceptedFiles: File[]) => {
@@ -50,7 +50,9 @@ export function SingleImageUpload({
     },
     [setFile, setBlobPreview],
   );
-  
+
+
+
   const { getRootProps, getInputProps, isDragActive } = useDropzone({
     onDrop,
     accept: { "image/*": [".png", ".jpg", ".jpeg", ".webp", ".svg"] },
@@ -59,31 +61,37 @@ export function SingleImageUpload({
   });
 
   const handleRemove = async () => {
-    if (!value || isDeleting) return;
-
-    setIsDeleting(true);
-    try {
-      const res = await fetch("/api/upload/delete", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({ url: value }),
-      });
-
-      if (!res.ok) throw new Error("Failed to delete");
-
-      onRemove();
-      appToast.success("Image has been deleted");
-    } catch {
-      appToast.error("Failed to delete image");
-    } finally {
-      setIsDeleting(false);
+    if (blobPreview) URL.revokeObjectURL(blobPreview);
+    setBlobPreview(null);
+    setFile(undefined);
+    if (value) {
+      onChange?.("");
     }
+    if (!value || isDeleting) return;
+    onRemove?.();
+    // setIsDeleting(true);
+    // try {
+    //   const res = await fetch("/api/upload/delete", {
+    //     method: "POST",
+    //     headers: {
+    //       "Content-Type": "application/json",
+    //     },
+    //     body: JSON.stringify({ url: value }),
+    //   });
+
+    //   if (!res.ok) throw new Error("Failed to delete");
+
+    //   onRemove();
+    //   appToast.success("Image has been deleted");
+    // } catch {
+    //   appToast.error("Failed to delete image");
+    // } finally {
+    //   setIsDeleting(false);
+    // }
   };
 
   // If image exists, show preview with delete button
-  if (blobPreview) {
+  if (blobPreview || value) {
     return (
       <>
         {label && <Label>{label}</Label>}
@@ -95,7 +103,7 @@ export function SingleImageUpload({
           )}
         >
           <Image
-            src={blobPreview}
+            src={(value || blobPreview) as string}
             unoptimized
             alt="Uploaded image"
             fill

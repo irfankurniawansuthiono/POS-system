@@ -104,7 +104,9 @@ export const addBrandSchema = z.object({
   name: z.string().min(2, "Brand name must be at least 2 characters"),
   logoUrl: z.string().optional(),
 });
-
+export const editBrandSchema = addBrandSchema.extend({
+  id: z.string().optional(),
+});
 // Type auth form
 export type LoginFormValues = z.infer<typeof loginSchema>;
 export type RegisterFormValues = z.infer<typeof registerSchema>;
@@ -122,3 +124,4 @@ export type EditCategoryFormValues = z.infer<typeof editCategorySchema>;
 
 // Type brand form
 export type AddBrandFormValues = z.infer<typeof addBrandSchema>;
+export type EditBrandFormValues = z.infer<typeof editBrandSchema>;

@@ -10,3 +10,12 @@ export const getBrandSchema = z.object({
     .optional(),
   sortDirection: z.enum(["asc", "desc"]).optional(),
 });
+
+export const editStatusBrandSchema = z.object({
+  id: z.string(),
+  status: z.boolean(),
+});
+
+export const deleteBrandSchema = z.object({
+  id: z.string(),
+});
