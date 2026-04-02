@@ -72,9 +72,12 @@ export default function EditBrand({
   const trpc = useTRPC();
   const editBrandMutation = useMutation(
     trpc.brand.edit.mutationOptions({
-      onSuccess: () => {
+      onSuccess: (data) => {
         queryClient.invalidateQueries(trpc.brand.get.queryFilter());
-        form.reset();
+        form.reset({
+          name: data.name,
+          logoUrl: data.logoUrl || "",
+        });
         setDialogOpen(false);
         setError(undefined);
         appToast.success("Brand created successfully!");

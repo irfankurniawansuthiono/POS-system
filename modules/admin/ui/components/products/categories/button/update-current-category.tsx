@@ -63,7 +63,9 @@ export default function UpdateCurrentCategory({
     trpc.category.edit.mutationOptions({
       onSuccess: () => {
         queryClient.invalidateQueries(trpc.category.get.queryFilter());
-        form.reset();
+        form.reset({
+          name: parentName,
+        });
         setDialogOpen(false);
         setError(undefined);
         appToast.success("Category updated successfully!");

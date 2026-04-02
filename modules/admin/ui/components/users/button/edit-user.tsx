@@ -78,9 +78,14 @@ export default function EditUser({
   const trpc = useTRPC();
 
   const editUserMutation = useMutation(trpc.user.edit.mutationOptions({
-    onSuccess: () => {
+    onSuccess: (data) => {
       queryClient.invalidateQueries(trpc.user.get.queryFilter());
-      form.reset();
+      form.reset({
+        id: data.id,
+        name: data.name,
+        email: data.email,
+        role: data.role as RoleUser
+      });
       setDialogOpen(false);
       setError(undefined);
       appToast.success("User edited successfully!");
