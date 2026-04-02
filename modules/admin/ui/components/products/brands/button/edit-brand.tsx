@@ -1,6 +1,6 @@
 "use client";
 import { ButtonWithIcon } from "@/components/custom/button-with-icon";
-import { Pencil, Ribbon } from "lucide-react";
+import { Pencil } from "lucide-react";
 import {
   Dialog,
   DialogClose,
