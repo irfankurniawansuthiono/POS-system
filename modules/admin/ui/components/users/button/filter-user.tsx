@@ -40,9 +40,7 @@ export default function FilterUsers({
   verifiedFilter: boolean | undefined;
   setVerifiedFilter: (verifiedFilter: boolean | undefined) => void;
 }) {
-  useEffect(() => {
-    console.log(rolesFilter);
-  }, [rolesFilter]);
+
   const filtersCount = {
     roles: rolesFilter.length,
     banned: bannedFilter === undefined ? 0 : 1,

@@ -69,7 +69,6 @@ export const brandRouter = createTRPCRouter({
       const limit = input.limit || 10;
       const search = input.search || "";
       const hasLogo = input.hasLogo;
-      console.log("hasLogo", hasLogo);
       const isBrandsActive = input.isBrandsActive;
       const sortDirection = input.sortDirection || "desc";
       const sortBy = input.sortBy || "updatedAt";

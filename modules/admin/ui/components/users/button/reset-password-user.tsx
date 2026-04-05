@@ -120,7 +120,6 @@ const resetPasswordMutation = useMutation(
                       value={field.value}
                       onChange={(e) => {
                         field.onChange(e);
-                        console.log(form.formState.errors)
                       }}
                       placeholder="Enter your new password"
                       required

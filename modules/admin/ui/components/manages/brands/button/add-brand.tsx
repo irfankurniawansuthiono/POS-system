@@ -86,7 +86,6 @@ export default function AddBrand() {
     pathName: "brands",
 
     onSuccess: (url) => {
-      console.log("changed", url);
       form.setValue("logoUrl", url);
     },
     onError: (err) => {
@@ -95,7 +94,6 @@ export default function AddBrand() {
   });
 
   const onSubmit = async (data: AddBrandFormValues) => {
-    console.log("data before", data);
     setError(undefined);
     if (file) {
       const url = await uploadImage(file);
@@ -103,7 +101,6 @@ export default function AddBrand() {
       setFile(undefined);
       setBlobPreview(null);
     }
-    console.log("data after", data);
     createBrandMutation.mutate(data);
   };
   return (

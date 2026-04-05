@@ -36,7 +36,8 @@ export default function FilterBrands({
   hasLogo: boolean | undefined;
 }) {
   const filtersCount = {
-    isBrandsActive: isBrandsActive ? 1 : 0,
+    isBrandsActive: isBrandsActive === undefined ? 0 : 1,
+    hasLogo: hasLogo === undefined ? 0 : 1,
   };
   const filterTotal = Object.values(filtersCount).reduce((a, b) => a + b, 0);
   return (

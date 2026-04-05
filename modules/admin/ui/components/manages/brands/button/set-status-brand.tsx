@@ -26,7 +26,7 @@ export default function SetBrandStatus({
         setOpen(false);
       },
       onError: (err) => {
-        console.log(err);
+        console.error(err);
         setOpen(false);
       },
     }),
