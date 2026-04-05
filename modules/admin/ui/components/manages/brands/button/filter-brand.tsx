@@ -15,7 +15,6 @@ import {
 import { ButtonWithIcon } from "@/components/custom/button-with-icon";
 import { Check, Funnel, FunnelPlus, FunnelX, X } from "lucide-react";
 import { Toggle } from "@/components/ui/toggle";
-import { roleList } from "../../../config/auth/role.user";
 import { useEffect } from "react";
 import {
   Select,
@@ -25,28 +24,19 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 
-export default function FilterUsers({
-  rolesFilter,
-  setRolesFilter,
-  bannedFilter,
-  setBannedFilter,
-  verifiedFilter,
-  setVerifiedFilter,
+export default function FilterBrands({
+  isBrandsActive,
+  setIsBrandsActive,
+  setHasLogo,
+  hasLogo,
 }: {
-  rolesFilter: (typeof roleList)[number][];
-  setRolesFilter: (rolesFilter: (typeof roleList)[number][]) => void;
-  bannedFilter: boolean | undefined;
-  setBannedFilter: (bannedFilter: boolean | undefined) => void;
-  verifiedFilter: boolean | undefined;
-  setVerifiedFilter: (verifiedFilter: boolean | undefined) => void;
+  isBrandsActive: boolean | undefined;
+  setIsBrandsActive: (isBrandsActive: boolean | undefined) => void;
+  setHasLogo: (hasLogo: boolean | undefined) => void;
+  hasLogo: boolean | undefined;
 }) {
-  useEffect(() => {
-    console.log(rolesFilter);
-  }, [rolesFilter]);
   const filtersCount = {
-    roles: rolesFilter.length,
-    banned: bannedFilter === undefined ? 0 : 1,
-    verified: verifiedFilter === undefined ? 0 : 1,
+    isBrandsActive: isBrandsActive ? 1 : 0,
   };
   const filterTotal = Object.values(filtersCount).reduce((a, b) => a + b, 0);
   return (
@@ -67,16 +57,14 @@ export default function FilterUsers({
             Filter by role, banned status, and email verification.
           </SheetDescription>
         </SheetHeader>
-
         <div className="space-y-4 px-4">
           <div className="flex items-end justify-end ">
             <ButtonWithIcon
               variant="default"
               startIcon={<FunnelX />}
               onClick={() => {
-                setRolesFilter([]);
-                setBannedFilter(undefined);
-                setVerifiedFilter(undefined);
+                setIsBrandsActive(undefined);
+                setHasLogo(undefined);
               }}
             >
               Clear Filters
@@ -84,49 +72,26 @@ export default function FilterUsers({
           </div>
           {/* role list */}
           <div className="flex flex-col gap-2">
-            <h1>Role:</h1>
-            <div className="space-y-2 space-x-2">
-              {roleList.map((role) => (
-                <Toggle
-                  key={role}
-                  variant="outline"
-                  aria-label={role}
-                  pressed={rolesFilter.includes(role)}
-                  onPressedChange={(pressed) => {
-                    setRolesFilter(
-                      pressed
-                        ? [...rolesFilter, role]
-                        : rolesFilter.filter((r: string) => r !== role),
-                    );
-                  }}
-                  className="data-[state=on]:bg-primary data-[state=on]:text-primary-foreground"
-                >
-                  {role.charAt(0).toUpperCase() + role.slice(1)}
-                </Toggle>
-              ))}
-            </div>
-          </div>
-          <div className="flex flex-col gap-2">
-            <h1>Banned:</h1>
+            <h1>Active Brand:</h1>
             <div className="flex items-center gap-2">
               <Select
                 value={
-                  bannedFilter === undefined
+                  isBrandsActive === undefined
                     ? "undefined"
-                    : bannedFilter.toString()
+                    : isBrandsActive.toString()
                 }
                 onValueChange={(value) =>
-                  setBannedFilter(
+                  setIsBrandsActive(
                     value === "undefined" ? undefined : value === "true",
                   )
                 }
               >
-                <SelectTrigger className="w-20">
+                <SelectTrigger>
                   <SelectValue
                     placeholder={
-                      bannedFilter === undefined
+                      isBrandsActive === undefined
                         ? "All"
-                        : bannedFilter
+                        : isBrandsActive
                           ? "Yes"
                           : "No"
                     }
@@ -141,28 +106,20 @@ export default function FilterUsers({
             </div>
           </div>
           <div className="flex flex-col gap-2">
-            <h1>Email Verified:</h1>
+            <h1>Has Brand&apos;s Logo:</h1>
             <div className="flex items-center gap-2">
               <Select
-                value={
-                  verifiedFilter === undefined
-                    ? "undefined"
-                    : verifiedFilter.toString()
-                }
+                value={hasLogo === undefined ? "undefined" : hasLogo.toString()}
                 onValueChange={(value) =>
-                  setVerifiedFilter(
+                  setHasLogo(
                     value === "undefined" ? undefined : value === "true",
                   )
                 }
               >
-                <SelectTrigger className="w-20">
+                <SelectTrigger>
                   <SelectValue
                     placeholder={
-                      verifiedFilter === undefined
-                        ? "All"
-                        : verifiedFilter
-                          ? "Yes"
-                          : "No"
+                      hasLogo === undefined ? "All" : hasLogo ? "Yes" : "No"
                     }
                   />
                 </SelectTrigger>

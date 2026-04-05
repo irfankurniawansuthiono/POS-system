@@ -55,15 +55,15 @@ export const navItems: NavItem[] = [
     },
   },
   {
-    title: "Products",
+    title: "Manage",
     url: "#", // Placeholder as there is no direct link for the parent
-    icon: "products",
+    icon: "settings2",
     isActive: true,
     access: { role: [role.admin, role.superadmin] },
     items: [
       {
         title: "Categories",
-        url: "/admin/products/categories",
+        url: "/admin/manages/categories",
         isActive: false,
         items: [],
         access: { role: [role.admin, role.superadmin] },
@@ -71,7 +71,15 @@ export const navItems: NavItem[] = [
       },
       {
         title: "Brands",
-        url: "/admin/products/brands",
+        url: "/admin/manages/brands",
+        isActive: false,
+        items: [],
+        access: { role: [role.admin, role.superadmin] },
+        shortcut: ["c", "c"],
+      },
+       {
+        title: "Products",
+        url: "/admin/manages/products",
         isActive: false,
         items: [],
         access: { role: [role.admin, role.superadmin] },

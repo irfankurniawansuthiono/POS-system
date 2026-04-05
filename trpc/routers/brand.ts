@@ -69,6 +69,8 @@ export const brandRouter = createTRPCRouter({
       const limit = input.limit || 10;
       const search = input.search || "";
       const hasLogo = input.hasLogo;
+      console.log("hasLogo", hasLogo);
+      const isBrandsActive = input.isBrandsActive;
       const sortDirection = input.sortDirection || "desc";
       const sortBy = input.sortBy || "updatedAt";
       const skip = (currentPage - 1) * limit;
@@ -80,14 +82,23 @@ export const brandRouter = createTRPCRouter({
                 contains: search,
                 mode: "insensitive",
               },
+              isActive:
+                isBrandsActive === undefined
+                  ? undefined
+                  : { equals: isBrandsActive },
+              logoUrl:
+                hasLogo === true
+                  ? {
+                      not: null,
+                      notIn: [""],
+                    }
+                  : hasLogo === false
+                    ? {
+                        equals: "",
+                      }
+                    : undefined,
             },
           ],
-          ...(hasLogo === true && {
-            logoUrl: { not: null },
-          }),
-          ...(hasLogo === false && {
-            logoUrl: null,
-          }),
         },
       });
       const brands = await ctx.db.brand.findMany({
@@ -100,6 +111,21 @@ export const brandRouter = createTRPCRouter({
                 contains: search,
                 mode: "insensitive",
               },
+              isActive:
+                isBrandsActive === undefined
+                  ? undefined
+                  : { equals: isBrandsActive },
+              logoUrl:
+                hasLogo === true
+                  ? {
+                      not: null,
+                      notIn: [""],
+                    }
+                  : hasLogo === false
+                    ? {
+                        equals: "",
+                      }
+                    : undefined,
             },
           ],
         },

@@ -41,6 +41,7 @@ import {
   FolderGit2,
   Mail,
   Boxes,
+  Settings2,
 } from "lucide-react";
 
 export type Icon = React.ComponentType<LucideProps>;
@@ -104,6 +105,7 @@ export const DiscordIcon = (props: React.SVGProps<SVGSVGElement>) => (
 export const Icons = {
   dashboard: LayoutDashboard,
   logo: Command,
+  settings2: Settings2,
   close: X,
   product: Box,
   palette: Palette,

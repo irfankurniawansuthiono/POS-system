@@ -29,8 +29,8 @@ export const userRouter = createTRPCRouter({
       const currentPage = input.page || 1;
       const limit = input.limit || 10;
       const rolesFilter = input.rolesFilter || [];
-      const banned = input.bannedFilter || undefined;
-      const verified = input.verifiedFilter || undefined;
+      const banned = input.bannedFilter;
+      const verified = input.verifiedFilter;
       const sortDirection = input.sortDirection || "desc";
       const sortBy = input.sortBy || "updatedAt";
       const search = input.search || "";
@@ -42,17 +42,13 @@ export const userRouter = createTRPCRouter({
           },
           role: rolesFilter.length > 0 ? { in: rolesFilter } : undefined,
           banned:
-            banned === null
+            banned === undefined
               ? undefined
               : {
                   equals: banned,
                 },
           emailVerified:
-            verified === null
-              ? undefined
-              : {
-                  equals: verified,
-                },
+            verified === undefined ? undefined : { equals: verified },
           OR: [
             {
               name: {
@@ -77,14 +73,9 @@ export const userRouter = createTRPCRouter({
             id: ctx.session.user.id,
           },
           role: rolesFilter.length > 0 ? { in: rolesFilter } : undefined,
-          banned:
-            banned === null
-              ? undefined
-              : {
-                  equals: banned,
-                },
+          banned: banned === undefined ? undefined : { equals: banned },
           emailVerified:
-            verified === null
+            verified === undefined
               ? undefined
               : {
                   equals: verified,

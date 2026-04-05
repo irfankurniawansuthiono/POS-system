@@ -1,6 +1,6 @@
 import PageContainer from "@/components/custom/page-container";
-import AddCategories from "@/modules/admin/ui/components/products/categories/button/add-category";
-import { CategoriesTreeView } from "@/modules/admin/ui/components/products/categories/categories-tree-view";
+import AddCategories from "@/modules/admin/ui/components/manages/categories/button/add-category";
+import { CategoriesTreeView } from "@/modules/admin/ui/components/manages/categories/categories-tree-view";
 import { Metadata } from "next";
 
 export const metadata: Metadata = {

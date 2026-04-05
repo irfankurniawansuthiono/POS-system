@@ -9,6 +9,7 @@ export const getBrandSchema = z.object({
     .default("updatedAt")
     .optional(),
   sortDirection: z.enum(["asc", "desc"]).optional(),
+  isBrandsActive: z.boolean().optional(),
 });
 
 export const editStatusBrandSchema = z.object({
