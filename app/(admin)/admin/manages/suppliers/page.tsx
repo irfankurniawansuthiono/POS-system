@@ -1,5 +1,5 @@
 import PageContainer from "@/components/custom/page-container";
-import AddBrand from "@/modules/admin/ui/components/manages/brands/button/add-brand";
+import AddSupplier from "@/modules/admin/ui/components/manages/suppliers/button/add-supplier";
 import { Metadata } from "next";
 
 export const metadata: Metadata = {
@@ -13,7 +13,7 @@ export default function SuppliersPage() {
     <PageContainer
       pageTitle="Suppliers"
       pageDescription="Manage product's suppliers in this store app"
-      pageHeaderAction={<AddBrand/>}
+      pageHeaderAction={<AddSupplier/>}
     >
       <h1>Suppliers Page</h1>
         {/* <BransDataTable/> */}
