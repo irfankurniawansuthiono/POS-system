@@ -2,33 +2,142 @@ import { createTRPCRouter, withRole } from "@/trpc/init";
 import { addSupplierSchema } from "@/lib/form-schema";
 import { Prisma } from "@/app/generated/prisma";
 import useGetUniquePrismaField from "@/hooks/get-unique-prisma-field";
+import { getSupplierSchema } from "@/lib/query-schema/supplier-schema";
 
 /* eslint-disable @typescript-eslint/no-explicit-any */
 export const supplierRouter = createTRPCRouter({
-  //   delete: withRole("superadmin", "admin")
-  //     .input(deleteBrandSchema)
-  //     .mutation(async ({ input, ctx }) => {
-  //       const deletedBrand = await ctx.db.brand.delete({
-  //         where: {
-  //           id: input.id,
-  //         },
-  //       });
-  //       return deletedBrand;
-  //     }),
-  //   edit: withRole("superadmin", "admin")
-  //     .input(editBrandSchema)
-  //     .mutation(async ({ input, ctx }) => {
-  //       const editedBrand = await ctx.db.brand.update({
-  //         where: {
-  //           id: input.id,
-  //         },
-  //         data: {
-  //           name: input.name,
-  //           logoUrl: input.logoUrl,
-  //         },
-  //       });
-  //       return editedBrand;
-  //     }),
+  get: withRole("superadmin")
+    .input(getSupplierSchema)
+    .query(async ({ ctx, input }) => {
+      const currentPage = input.page || 1;
+      const limit = input.limit || 10;
+      const sortDirection = input.sortDirection || "desc";
+      const sortBy = input.sortBy || "updatedAt";
+      const search = input.search || "";
+      const skip = (currentPage - 1) * limit;
+      const userTotal = await ctx.db.supplier.count({
+        where: {
+          NOT: {
+            id: ctx.session.user.id,
+          },
+          OR: [
+            {
+              name: {
+                contains: search,
+                mode: "insensitive",
+              },
+            },
+            {
+              email: {
+                contains: search,
+                mode: "insensitive",
+              },
+            },
+            {
+              companyName: {
+                contains: search,
+                mode: "insensitive",
+              },
+            },
+            {
+              contactPerson: {
+                contains: search,
+                mode: "insensitive",
+              },
+            },
+            {
+              city: {
+                contains: search,
+                mode: "insensitive",
+              },
+            },
+            {
+              address: {
+                contains: search,
+                mode: "insensitive",
+              },
+            },
+            {
+              phone: {
+                contains: search,
+                mode: "insensitive",
+              },
+            },
+          ],
+        },
+      });
+      const users = await ctx.db.supplier.findMany({
+        skip,
+        take: limit,
+        where: {
+          NOT: {
+            id: ctx.session.user.id,
+          },
+          OR: [
+            {
+              name: {
+                contains: search,
+                mode: "insensitive",
+              },
+            },
+            {
+              email: {
+                contains: search,
+                mode: "insensitive",
+              },
+            },
+            {
+              companyName: {
+                contains: search,
+                mode: "insensitive",
+              },
+            },
+            {
+              contactPerson: {
+                contains: search,
+                mode: "insensitive",
+              },
+            },
+            {
+              city: {
+                contains: search,
+                mode: "insensitive",
+              },
+            },
+            {
+              address: {
+                contains: search,
+                mode: "insensitive",
+              },
+            },
+            {
+              phone: {
+                contains: search,
+                mode: "insensitive",
+              },
+            },
+          ],
+        },
+        orderBy: {
+          [sortBy]: sortDirection,
+        },
+      });
+      const hasNextPage = skip + users.length < userTotal;
+      const hasPreviousPage = skip > 0;
+      const totalPages = Math.ceil(userTotal / limit);
+      const meta = {
+        total: userTotal,
+        currentPage,
+        limit,
+        hasNextPage,
+        hasPreviousPage,
+        totalPages,
+        nextPage: hasNextPage ? currentPage + 1 : null,
+        previousPage: hasPreviousPage ? currentPage - 1 : null,
+      };
+
+      return { users, meta };
+    }),
   create: withRole("superadmin", "admin")
     .input(addSupplierSchema)
     .mutation(async ({ input, ctx }) => {

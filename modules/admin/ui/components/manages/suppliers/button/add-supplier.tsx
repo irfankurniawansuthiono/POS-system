@@ -97,7 +97,7 @@ export default function AddSupplier() {
   const createSupplierMutation = useMutation(
     trpc.supplier.create.mutationOptions({
       onSuccess: () => {
-        queryClient.invalidateQueries(trpc.user.get.queryFilter());
+        queryClient.invalidateQueries(trpc.supplier.get.queryFilter());
         form.reset();
         setDialogOpen(false);
         setError(undefined);
@@ -211,7 +211,7 @@ export default function AddSupplier() {
                     <FormItem>
                       <FormLabel>
                         <Building size={16} />
-                        Name
+                        Known As
                       </FormLabel>
                       <FormControl>
                         <Input placeholder="Surya Indonesia" {...field} />
