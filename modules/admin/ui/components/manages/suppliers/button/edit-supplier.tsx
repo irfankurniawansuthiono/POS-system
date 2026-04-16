@@ -21,7 +21,8 @@ import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Spinner } from "@/components/ui/spinner";
 import { Textarea } from "@/components/ui/textarea";
-import { AddSupplierFormValues, addSupplierSchema } from "@/lib/form-schema";
+import { AddSupplierFormValues } from "@/lib/form-schema";
+import { editSupplierSchema } from "@/lib/query-schema/supplier-schema";
 import { useTRPC } from "@/trpc/client";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
@@ -35,37 +36,60 @@ import {
     Map,
     MapPinned,
     NotebookText,
+    Pencil,
     Phone,
-    UserPlus,
 } from "lucide-react";
 import { useEffect, useState } from "react";
 import { useForm, useWatch } from "react-hook-form";
 import useFormPersist from "react-hook-form-persist";
-export default function AddSupplier() {
+
+export default function EditSupplier({ id, data }: { id: string; data: AddSupplierFormValues }) {
     const [error, setError] = useState<string | undefined>(undefined);
     const [dialogOpen, setDialogOpen] = useState(false);
     const queryClient = useQueryClient();
     const form = useForm<AddSupplierFormValues>({
-        resolver: zodResolver(addSupplierSchema),
+        resolver: zodResolver(editSupplierSchema),
         mode: "onChange",
         shouldFocusError: true,
         defaultValues: {
-            name: "",
-            companyName: "",
-            contactPerson: "",
-            email: "",
-            phone: "",
-            address: "",
-            gmapsUrl: "",
-            city: "",
-            notes: "",
-            paymentTerm: PaymentTerm.CASH,
-            tempoDays: 30,
-            accountHolderName: "",
-            bankAccountNumber: "",
-            bankName: "",
+            name: data.name || "",
+            companyName: data.companyName || "",
+            contactPerson: data.contactPerson || "",
+            email: data.email || "",
+            phone: data.phone || "",
+            address: data.address || "",
+            gmapsUrl: data.gmapsUrl || "",
+            city: data.city || "",
+            notes: data.notes || "",
+            paymentTerm: data.paymentTerm,
+            tempoDays: data.tempoDays || 30,
+            accountHolderName: data.accountHolderName || "",
+            bankAccountNumber: data.bankAccountNumber || "",
+            bankName: data.bankName || "",
         },
     });
+
+    useEffect(() => {
+        if (dialogOpen) {
+            form.reset({
+                name: data.name || "",
+                companyName: data.companyName || "",
+                contactPerson: data.contactPerson || "",
+                email: data.email || "",
+                phone: data.phone || "",
+                address: data.address || "",
+                gmapsUrl: data.gmapsUrl || "",
+                city: data.city || "",
+                notes: data.notes || "",
+                paymentTerm: data.paymentTerm,
+                tempoDays: data.tempoDays || 30,
+                accountHolderName: data.accountHolderName || "",
+                bankAccountNumber: data.bankAccountNumber || "",
+                bankName: data.bankName || "",
+            });
+        }
+    }, [data, form, dialogOpen]);
+
     const storage = typeof window !== "undefined" ? localStorage : undefined;
 
     useFormPersist("add-supplier-form", {
@@ -91,8 +115,8 @@ export default function AddSupplier() {
         }
     }, [paymentTermWatch, form]);
 
-    const createSupplierMutation = useMutation(
-        trpc.supplier.create.mutationOptions({
+    const editSupplierMutation = useMutation(
+        trpc.supplier.edit.mutationOptions({
             onSuccess: () => {
                 queryClient.invalidateQueries(trpc.supplier.get.queryFilter());
                 form.reset();
@@ -108,22 +132,22 @@ export default function AddSupplier() {
     );
     const onSubmit = async (data: AddSupplierFormValues) => {
         setError(undefined);
-        createSupplierMutation.mutate(data);
+        editSupplierMutation.mutate({ ...data, id });
     };
     return (
         <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
             <DialogTrigger asChild>
-                <ButtonWithIcon startIcon={<UserPlus />} variant="default">
-                    Add New Supplier
-                </ButtonWithIcon>
+                <Button variant="default">
+                    <Pencil />
+                </Button>
             </DialogTrigger>
             <DialogContent className="max-w-sm md:max-w-md xl:max-w-xl w-full">
                 <div className="h-[80vh] no-scrollbar overflow-y-auto">
                     <Form {...form}>
                         <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
                             <DialogHeader>
-                                <DialogTitle>Add New Supplier</DialogTitle>
-                                <DialogDescription>Please fill in the form to create a new supplier.</DialogDescription>
+                                <DialogTitle>Edit Supplier</DialogTitle>
+                                <DialogDescription>Edit Supplier {data.name}</DialogDescription>
                             </DialogHeader>
 
                             {error && (
@@ -414,15 +438,15 @@ export default function AddSupplier() {
                                 </DialogClose>
                                 <ButtonWithIcon
                                     type="submit"
-                                    startIcon={createSupplierMutation.isPending ? <Spinner /> : <UserPlus />}
+                                    startIcon={editSupplierMutation.isPending ? <Spinner /> : <Pencil />}
                                     className={`${
-                                        createSupplierMutation.isPending || !form.formState.isValid
+                                        editSupplierMutation.isPending || !form.formState.isValid
                                             ? "cursor-not-allowed pointer-events-none"
                                             : ""
                                     }`}
-                                    disabled={createSupplierMutation.isPending || !form.formState.isValid}
+                                    disabled={editSupplierMutation.isPending || !form.formState.isValid}
                                 >
-                                    {createSupplierMutation.isPending ? "Adding..." : "Add Supplier"}
+                                    {editSupplierMutation.isPending ? "Updating..." : "Update Supplier"}
                                 </ButtonWithIcon>
                             </DialogFooter>
                         </form>
