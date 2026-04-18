@@ -34,105 +34,105 @@ import { role } from "./auth/role.user";
  * Use the `access` property for new items.
  */
 export const navItems: NavItem[] = [
-  {
-    title: "Dashboard",
-    url: "/admin/dashboard",
-    icon: "dashboard",
-    isActive: false,
-    shortcut: ["d", "d"],
-    access: { role: [role.admin, role.superadmin] },
-    items: [],
-  },
-  {
-    title: "Users",
-    url: "/users",
-    icon: "users",
-    isActive: false,
-    items: [],
-    shortcut: ["u", "u"],
-    access: {
-      role: [role.superadmin],
+    {
+        title: "Dashboard",
+        url: "/admin/dashboard",
+        icon: "dashboard",
+        isActive: false,
+        shortcut: ["d", "d"],
+        access: { role: [role.admin, role.superadmin] },
+        items: [],
     },
-  },
-  {
-    title: "Manage",
-    url: "#", // Placeholder as there is no direct link for the parent
-    icon: "settings2",
-    isActive: true,
-    access: { role: [role.admin, role.superadmin] },
-    items: [
-      {
-        title: "Categories",
-        url: "/admin/manages/categories",
+    {
+        title: "Users",
+        url: "/users",
+        icon: "users",
         isActive: false,
         items: [],
+        shortcut: ["u", "u"],
+        access: {
+            role: [role.superadmin],
+        },
+    },
+    {
+        title: "Manage",
+        url: "#", // Placeholder as there is no direct link for the parent
+        icon: "settings2",
+        isActive: true,
         access: { role: [role.admin, role.superadmin] },
-        shortcut: ["c", "c"],
-      },
-      {
-        title: "Brands",
-        url: "/admin/manages/brands",
-        isActive: false,
-        items: [],
-        access: { role: [role.admin, role.superadmin] },
-        shortcut: ["b", "b"],
-      },
-      {
-        title: "Suppliers",
-        url: "/admin/manages/suppliers",
-        isActive: false,
-        items: [],
-        access: { role: [role.admin, role.superadmin] },
-        shortcut: ["s", "s"],
+        items: [
+            {
+                title: "Categories",
+                url: "/admin/manages/categories",
+                isActive: false,
+                items: [],
+                icon: "dashboard",
+                access: { role: [role.admin, role.superadmin] },
+                shortcut: ["c", "c"],
+            },
+            {
+                title: "Brands",
+                url: "/admin/manages/brands",
+                isActive: false,
+                items: [],
+                access: { role: [role.admin, role.superadmin] },
+                shortcut: ["b", "b"],
+            },
+            {
+                title: "Suppliers",
+                url: "/admin/manages/suppliers",
+                isActive: false,
+                items: [],
+                access: { role: [role.admin, role.superadmin] },
+                shortcut: ["s", "s"],
+            },
+            {
+                title: "Products",
+                url: "/admin/manages/products",
+                isActive: false,
+                items: [],
+                access: { role: [role.admin, role.superadmin] },
+                shortcut: ["p", "p"],
+            },
+        ],
+    },
 
-      },
-       {
-        title: "Products",
-        url: "/admin/manages/products",
-        isActive: false,
-        items: [],
-        access: { role: [role.admin, role.superadmin] },
-        shortcut: ["p", "p"],
-      },
-    ],
-  },
-
-  // {
-  //   title: "Inbox",
-  //   url: "/admin/inbox",
-  //   icon: "mail",
-  //   isActive: false,
-  //   items: [],
-  // },
-  // {
-  //   title: "Workspaces",
-  //   url: "#", // Placeholder as there is no direct link for the parent
-  //   icon: "workspace",
-  //   isActive: true,
-  //   items: [
-  //     {
-  //       title: "Portfolio",
-  //       url: "/admin/portfolio",
-  //       icon: "layer",
-  //       shortcut: ["m", "m"],
-  //     },
-  //     {
-  //       title: "Resume",
-  //       url: "/admin/resume",
-  //       icon: "profile",
-  //       shortcut: ["m", "m"],
-  //     },
-  //   ],
-  // },
-  // {
-  //   title: "Tracker",
-  //   url: "/admin/tracker",
-  //   icon: "exclusive",
-  //   isActive: false,
-  //   items: [],
-  //   // Require organization to be active
-  //   access: { requireOrg: true },
-  //   // Alternative: require specific permission
-  //   // access: { requireOrg: true, permission: 'org:teams:view' }
-  // },
+    // {
+    //   title: "Inbox",
+    //   url: "/admin/inbox",
+    //   icon: "mail",
+    //   isActive: false,
+    //   items: [],
+    // },
+    // {
+    //   title: "Workspaces",
+    //   url: "#", // Placeholder as there is no direct link for the parent
+    //   icon: "workspace",
+    //   isActive: true,
+    //   items: [
+    //     {
+    //       title: "Portfolio",
+    //       url: "/admin/portfolio",
+    //       icon: "layer",
+    //       shortcut: ["m", "m"],
+    //     },
+    //     {
+    //       title: "Resume",
+    //       url: "/admin/resume",
+    //       icon: "profile",
+    //       shortcut: ["m", "m"],
+    //     },
+    //   ],
+    // },
+    // {
+    //   title: "Tracker",
+    //   url: "/admin/tracker",
+    //   icon: "exclusive",
+    //   isActive: false,
+    //   items: [],
+    //   // Require organization to be active
+    //   access: { requireOrg: true },
+    //   // Alternative: require specific permission
+    //   // access: { requireOrg: true, permission: 'org:teams:view' }
+    // },
 ];

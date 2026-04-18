@@ -97,7 +97,7 @@ const columns = (page: number, limit: number): ColumnDef<Supplier>[] => [
             return (
                 <div className="flex gap-2">
                     <EditSupplier id={row.original.id} data={row.original as AddSupplierFormValues} />
-                    <DeleteSupplier id={row.original.id} />
+                    <DeleteSupplier id={row.original.id} name={row.original.name} />
                 </div>
             );
         },

@@ -7,7 +7,7 @@ import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { Trash } from "lucide-react";
 import { useState } from "react";
 
-export default function DeleteSupplier({ id }: { id: string }) {
+export default function DeleteSupplier({ id, name }: { id: string; name: string }) {
     const trpc = useTRPC();
     const queryClient = useQueryClient();
     const [open, setOpen] = useState(false);
@@ -30,7 +30,7 @@ export default function DeleteSupplier({ id }: { id: string }) {
             open={open}
             onOpenChange={setOpen}
             title="Delete Supplier"
-            description="Are you sure you want to delete this supplier?"
+            description={`Are you sure you want to delete this ${name} from the supplier list?`}
             onConfirm={() => deleteSupplierMutation.mutate({ id })}
             isDeleting={deleteSupplierMutation.isPending}
         >
