@@ -9,49 +9,33 @@ import {
     DialogTrigger,
 } from "@/components/ui/dialog";
 
-import { zodResolver } from "@hookform/resolvers/zod";
 import { defineStepper } from "@stepperize/react";
 import { StepStatus, useStepItemContext } from "@stepperize/react/primitives";
-import { Controller, useForm } from "react-hook-form";
-import * as z from "zod";
 
-import { AsyncSelect } from "@/components/custom/async-select";
 import { ButtonWithIcon } from "@/components/custom/button-with-icon";
-import SeparatorWithText from "@/components/custom/separator-with-text-1";
-import { Cascader } from "@/components/ui/cascader";
-import { Field, FieldError, FieldGroup, FieldLabel } from "@/components/ui/field";
-import { Input } from "@/components/ui/input";
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { Textarea } from "@/components/ui/textarea";
+
 import { useTRPC } from "@/trpc/client";
-import { buildProductCategoriesTree } from "@/utils/categories-tree";
-import { useQuery, useQueryClient } from "@tanstack/react-query";
+import { useQuery } from "@tanstack/react-query";
 import { Plus } from "lucide-react";
 import React from "react";
 
-const productInfoSchema = z.object({
-    name: z.string().min(2, "Product name must be at least 2 characters"),
-    description: z.string().min(10, "Description must be at least 10 characters"),
-    brandId: z.string().min(1, "Brand is required"),
-    category: z.string().array().min(1, "Category is required"),
-    isActive: z.boolean(),
-});
-type Category = {
-    id: string;
-    parentId: string;
-    name: string;
-    updatedAt: Date;
-    createdAt: Date;
-    categoryIndex: number;
-};
-
-type ProductInfo = z.infer<typeof productInfoSchema>;
+// form
+import type { Category } from "@/app/generated/prisma";
+import type { FormDataAddProduct, ProductAddFormId } from "./add-product-step-form";
+import { ProductInfoForm } from "./add-product-step-form/1-product-info";
+import { GenerateProductVariantsForm } from "./add-product-step-form/2-generate-product-variant";
+import { CompleteStep } from "./add-product-step-form/complete-setup";
 
 const { Stepper } = defineStepper(
     {
         id: "product",
         title: "Product Info",
         description: "Enter product details",
+    },
+    {
+        id: "generateVariants",
+        title: "Generate Variants",
+        description: "Generate product variants",
     },
     {
         id: "complete",
@@ -117,242 +101,31 @@ const StepperSeparatorWithStatus = ({ status, isLast }: { status: StepStatus; is
     );
 };
 
-function ProductInfoForm({
-    onNext,
-    defaultValues,
-    categoriesData,
-}: {
-    onNext: (data: ProductInfo) => void;
-    defaultValues?: ProductInfo;
-    categoriesData?: Category[];
-}) {
-    const trpc = useTRPC();
-    const queryClient = useQueryClient();
-
-    const form = useForm<ProductInfo>({
-        resolver: zodResolver(productInfoSchema),
-        defaultValues: defaultValues || {
-            name: "",
-            description: "",
-            brandId: "",
-            category: [],
-            isActive: true,
-        },
-    });
-
-    return (
-        <form id="stepper-form-product" onSubmit={form.handleSubmit(onNext)} className="space-y-4">
-            <FieldGroup>
-                <Controller
-                    name="name"
-                    control={form.control}
-                    render={({ field, fieldState }) => (
-                        <Field data-invalid={fieldState.invalid}>
-                            <FieldLabel htmlFor="stepper-form-product-name">Product Name</FieldLabel>
-                            <Input
-                                {...field}
-                                id="stepper-form-product-name"
-                                aria-invalid={fieldState.invalid}
-                                placeholder="Awesome Product"
-                            />
-                            {fieldState.invalid && <FieldError errors={[fieldState.error]} />}
-                        </Field>
-                    )}
-                />
-                <Controller
-                    name="description"
-                    control={form.control}
-                    render={({ field, fieldState }) => (
-                        <Field data-invalid={fieldState.invalid}>
-                            <FieldLabel htmlFor="stepper-form-product-description">Description</FieldLabel>
-                            <Textarea
-                                {...field}
-                                id="stepper-form-product-description"
-                                aria-invalid={fieldState.invalid}
-                                placeholder="This product is awesome because..."
-                            />
-                            {fieldState.invalid && <FieldError errors={[fieldState.error]} />}
-                        </Field>
-                    )}
-                />
-
-                <Controller
-                    name={"brandId"}
-                    control={form.control}
-                    render={({ field, fieldState }) => (
-                        <Field data-invalid={fieldState.invalid}>
-                            <FieldLabel htmlFor="stepper-form-product-brand">Brand</FieldLabel>
-                            <AsyncSelect
-                                fetcher={async query => {
-                                    return await queryClient.fetchQuery(
-                                        trpc.brand.getList.queryOptions({ search: query ?? "" }),
-                                    );
-                                }}
-                                value={field.value}
-                                onChange={field.onChange}
-                                placeholder="Select a brand..."
-                                renderOption={option => (
-                                    <div className="flex items-center gap-2">
-                                        {option.logoUrl && (
-                                            <img
-                                                src={option.logoUrl}
-                                                alt={option.name}
-                                                className="w-6 h-6 object-cover"
-                                            />
-                                        )}
-                                        <span>{option.name}</span>
-                                    </div>
-                                )}
-                                getOptionValue={option => option.id}
-                                getDisplayValue={option => (
-                                    <div className="flex items-center gap-2">
-                                        {option.logoUrl && (
-                                            <img
-                                                src={option.logoUrl}
-                                                alt={option.name}
-                                                className="w-6 h-6 rounded-full object-cover"
-                                            />
-                                        )}
-                                        <span>{option.name}</span>
-                                    </div>
-                                )}
-                                label="Brand"
-                            />
-                            {fieldState.invalid && <FieldError errors={[fieldState.error]} />}
-                        </Field>
-                    )}
-                />
-                <Controller
-                    name={"category"}
-                    control={form.control}
-                    render={({ field, fieldState }) => (
-                        <Field data-invalid={fieldState.invalid}>
-                            <FieldLabel htmlFor="stepper-form-product-category">Category</FieldLabel>
-                            <Cascader
-                                onChange={field.onChange}
-                                value={field.value}
-                                placeholder="Select a category..."
-                                options={buildProductCategoriesTree(categoriesData || []) || []}
-                            />
-                            {fieldState.invalid && <FieldError errors={[fieldState.error]} />}
-                        </Field>
-                    )}
-                />
-            </FieldGroup>
-            <div className="flex justify-end">
-                <Button type="submit">Next</Button>
-            </div>
-        </form>
-    );
-}
-
-function CompleteStep({
-    formData,
-    categoriesData,
-    onReset,
-    onPrev,
-}: {
-    formData: {
-        product?: ProductInfo;
-    };
-    onReset: () => void;
-    categoriesData: Category[];
-    onPrev: () => void;
-}) {
-    const trpc = useTRPC();
-    const categoryText =
-        formData.product?.category
-            .map(catId => {
-                const category = categoriesData?.find(c => c.id === catId);
-                return category ? category.name : "Unknown";
-            })
-            .join(" > ") || "N/A";
-
-    const { data: brand } = useQuery(trpc.brand.getById.queryOptions({ id: formData.product?.brandId || "" }));
-    return (
-        <div className="space-y-4">
-            <div className="rounded border bg-secondary p-4 space-y-3">
-                <h3 className="font-semibold">Summary</h3>
-                <div>
-                    <SeparatorWithText text="Product Summary" />
-                    <Table>
-                        <TableHeader>
-                            <TableRow>
-                                <TableHead>Label</TableHead>
-                                <TableHead>Value</TableHead>
-                            </TableRow>
-                        </TableHeader>
-                        <TableBody>
-                            <TableRow>
-                                <TableCell>
-                                    <strong>Name</strong>
-                                </TableCell>
-                                <TableCell>{formData.product?.name}</TableCell>
-                            </TableRow>
-                            <TableRow>
-                                <TableCell>
-                                    <strong>Description</strong>
-                                </TableCell>
-                                <TableCell>{formData.product?.description}</TableCell>
-                            </TableRow>
-                            <TableRow>
-                                <TableCell>
-                                    <strong>Brand</strong>
-                                </TableCell>
-                                <TableCell>{brand?.name}</TableCell>
-                                <TableCell className="w-full">
-                                    {brand?.logoUrl && (
-                                        <img src={brand.logoUrl} alt={brand.name} className="w-16 h-16 object-fit" />
-                                    )}
-                                </TableCell>
-                            </TableRow>
-                            <TableRow>
-                                <TableCell>
-                                    <strong>Category</strong>
-                                </TableCell>
-                                <TableCell>{categoryText}</TableCell>
-                            </TableRow>
-                        </TableBody>
-                    </Table>
-                </div>
-            </div>
-            <div className="flex justify-end gap-4">
-                <Button type="button" variant="secondary" onClick={onPrev}>
-                    Previous
-                </Button>
-                <Button type="button" onClick={onReset}>
-                    Start Over
-                </Button>
-            </div>
-        </div>
-    );
-}
-
-type FormData = {
-    product?: ProductInfo;
-};
-
 export default function AddProduct() {
     const trpc = useTRPC();
+
+    const [combinated, setCombinated] = React.useState<{ name: string; values: string[] }[] | null>(null);
     const { data: categoriesData } = useQuery(trpc.category.get.queryOptions()) || [];
     return (
         <Dialog>
             <DialogTrigger asChild>
                 <ButtonWithIcon startIcon={<Plus />}>Add Product</ButtonWithIcon>
             </DialogTrigger>
-            <DialogContent className="sm:max-w-fit">
+            <DialogContent onInteractOutside={e => e.preventDefault()} className="sm:max-w-fit">
                 <DialogHeader>
                     <DialogTitle>Add Product</DialogTitle>
                     <DialogDescription>
-                        Use the form below to add a new product to your inventory. Once you have filled out the
+                        Use the form below to add a new product to your inventory. Once you have filled out all the
                         information, click &quot;Next&quot; to review your entries before submitting.
                     </DialogDescription>
                 </DialogHeader>
                 <Stepper.Root className="w-full space-y-4" orientation="horizontal">
                     {({ stepper }) => {
-                        const stored = (id: "product") => stepper.metadata.get(id) as FormData | undefined;
-                        const formData: FormData = {
+                        const stored = (id: ProductAddFormId) =>
+                            stepper.metadata.get(id) as FormDataAddProduct | undefined;
+                        const formData: FormDataAddProduct = {
                             product: stored("product")?.product,
+                            generateVariants: stored("generateVariants")?.generateVariants,
                         };
 
                         return (
@@ -407,6 +180,23 @@ export default function AddProduct() {
                                                         product: data,
                                                     });
                                                     stepper.navigation.next();
+                                                }}
+                                            />
+                                        ),
+                                        generateVariants: () => (
+                                            <GenerateProductVariantsForm
+                                                combinated={combinated}
+                                                setCombinated={setCombinated}
+                                                onNext={data => {
+                                                    stepper.metadata.set("generateVariants", {
+                                                        ...formData,
+                                                        generateVariants: data,
+                                                    });
+                                                    stepper.navigation.next();
+                                                }}
+                                                defaultValues={formData.generateVariants}
+                                                onPrev={() => {
+                                                    stepper.navigation.prev();
                                                 }}
                                             />
                                         ),
