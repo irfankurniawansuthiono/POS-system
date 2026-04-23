@@ -1,8 +1,9 @@
-import type { GenerateVariantAttribute, ProductInfo } from "@/lib/query-schema/product-schema";
+import type { GenerateVariantAttribute, ProductInfo, VariantsInfo } from "@/lib/query-schema/product-schema";
 
 export type FormDataAddProduct = {
-    product?: ProductInfo;
+    productInfo?: ProductInfo;
     generateVariants?: GenerateVariantAttribute;
+    variantsInfo?: VariantsInfo;
 };
 
-export type ProductAddFormId = "product" | "generateVariants";
+export type ProductAddFormId = "productInfo" | "generateVariants" | "variantInfo";

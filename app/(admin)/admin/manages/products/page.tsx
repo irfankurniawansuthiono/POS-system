@@ -3,8 +3,8 @@ import AddProduct from "@/modules/admin/ui/components/manages/products/buttons/a
 import { Metadata } from "next";
 
 export const metadata: Metadata = {
-    title: "Brands",
-    description: "Manage brands in this store app",
+    title: "Products",
+    description: "Manage products in this store app",
     robots: { index: false, follow: false },
 };
 

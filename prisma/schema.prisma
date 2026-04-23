@@ -96,6 +96,7 @@ model Variant {
   // Inventory & Finance
   stock     Int     @default(0)
   costPrice Decimal @default(0) @db.Decimal(12, 2)
+  profitMargin Float   @default(0) // Dalam persen, misal 20 untuk 20%
   basePrice Decimal @default(0) @db.Decimal(12, 2)
 
   // Fleksibilitas (Menyimpan {"warna": "Merah", "ukuran": "39"})

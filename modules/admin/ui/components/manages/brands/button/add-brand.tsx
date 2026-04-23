@@ -55,6 +55,8 @@ export default function AddBrand() {
         trpc.brand.create.mutationOptions({
             onSuccess: () => {
                 queryClient.invalidateQueries(trpc.brand.get.queryFilter());
+                // getList
+                queryClient.invalidateQueries(trpc.brand.getList.queryFilter());
                 form.reset();
                 setDialogOpen(false);
                 setError(undefined);

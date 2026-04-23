@@ -73,68 +73,71 @@ export function ProductInfoForm({
                     )}
                 />
 
-                <Controller
-                    name={"brandId"}
-                    control={form.control}
-                    render={({ field, fieldState }) => (
-                        <Field data-invalid={fieldState.invalid}>
-                            <FieldLabel htmlFor="stepper-form-product-brand">Brand</FieldLabel>
-                            <AsyncSelect
-                                fetcher={async query => {
-                                    return await queryClient.fetchQuery(
-                                        trpc.brand.getList.queryOptions({ search: query ?? "" }),
-                                    );
-                                }}
-                                value={field.value}
-                                onChange={field.onChange}
-                                placeholder="Select a brand..."
-                                renderOption={option => (
-                                    <div className="flex items-center gap-2">
-                                        {option.logoUrl && (
-                                            <img
-                                                src={option.logoUrl}
-                                                alt={option.name}
-                                                className="w-6 h-6 object-cover"
-                                            />
-                                        )}
-                                        <span>{option.name}</span>
-                                    </div>
-                                )}
-                                getOptionValue={option => option.id}
-                                getDisplayValue={option => (
-                                    <div className="flex items-center gap-2">
-                                        {option.logoUrl && (
-                                            <img
-                                                src={option.logoUrl}
-                                                alt={option.name}
-                                                className="w-6 h-6 rounded-full object-cover"
-                                            />
-                                        )}
-                                        <span>{option.name}</span>
-                                    </div>
-                                )}
-                                label="Brand"
-                            />
-                            {fieldState.invalid && <FieldError errors={[fieldState.error]} />}
-                        </Field>
-                    )}
-                />
-                <Controller
-                    name={"category"}
-                    control={form.control}
-                    render={({ field, fieldState }) => (
-                        <Field data-invalid={fieldState.invalid}>
-                            <FieldLabel htmlFor="stepper-form-product-category">Category</FieldLabel>
-                            <Cascader
-                                onChange={field.onChange}
-                                value={field.value}
-                                placeholder="Select a category..."
-                                options={buildProductCategoriesTree(categoriesData || []) || []}
-                            />
-                            {fieldState.invalid && <FieldError errors={[fieldState.error]} />}
-                        </Field>
-                    )}
-                />
+                <div className="grid md:grid-cols-2 gap-4">
+                    <Controller
+                        name={"brandId"}
+                        control={form.control}
+                        render={({ field, fieldState }) => (
+                            <Field data-invalid={fieldState.invalid}>
+                                <FieldLabel htmlFor="stepper-form-product-brand">Brand</FieldLabel>
+                                <AsyncSelect
+                                    fetcher={async query => {
+                                        return await queryClient.fetchQuery(
+                                            trpc.brand.getList.queryOptions({ search: query ?? "" }),
+                                        );
+                                    }}
+                                    value={field.value}
+                                    onChange={field.onChange}
+                                    placeholder="Select a brand..."
+                                    renderOption={option => (
+                                        <div className="flex items-center gap-2">
+                                            {option.logoUrl && (
+                                                <img
+                                                    src={option.logoUrl}
+                                                    alt={option.name}
+                                                    className="w-6 h-6 object-cover"
+                                                />
+                                            )}
+                                            <span>{option.name}</span>
+                                        </div>
+                                    )}
+                                    getOptionValue={option => option.id}
+                                    getDisplayValue={option => (
+                                        <div className="flex items-center gap-2">
+                                            {option.logoUrl && (
+                                                <img
+                                                    src={option.logoUrl}
+                                                    alt={option.name}
+                                                    className="w-6 h-6 rounded-full object-cover"
+                                                />
+                                            )}
+                                            <span>{option.name}</span>
+                                        </div>
+                                    )}
+                                    label="Brand"
+                                />
+                                {fieldState.invalid && <FieldError errors={[fieldState.error]} />}
+                            </Field>
+                        )}
+                    />
+
+                    <Controller
+                        name={"category"}
+                        control={form.control}
+                        render={({ field, fieldState }) => (
+                            <Field data-invalid={fieldState.invalid}>
+                                <FieldLabel htmlFor="stepper-form-product-category">Category</FieldLabel>
+                                <Cascader
+                                    onChange={field.onChange}
+                                    value={field.value}
+                                    placeholder="Select a category..."
+                                    options={buildProductCategoriesTree(categoriesData || []) || []}
+                                />
+                                {fieldState.invalid && <FieldError errors={[fieldState.error]} />}
+                            </Field>
+                        )}
+                    />
+                </div>
             </FieldGroup>
             <div className="flex justify-end">
                 <Button type="submit">Next</Button>

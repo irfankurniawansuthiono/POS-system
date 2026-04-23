@@ -8,7 +8,6 @@ import { DataTablePagination } from "./table-pagination";
 import { ChevronDown, Info } from "lucide-react";
 
 import { appToast } from "@/components/custom/app-toast";
-import { InputWithIcon } from "@/components/custom/input-with-icon";
 import { Button } from "@/components/ui/button";
 import {
     DropdownMenu,
@@ -16,6 +15,7 @@ import {
     DropdownMenuContent,
     DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
+import { InputGroup, InputGroupAddon, InputGroupInput } from "@/components/ui/input-group";
 import { Label } from "@/components/ui/label";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
 import { Search } from "lucide-react";
@@ -91,9 +91,11 @@ export function DataTableTemplate({
                 {/* search input with icon */}
                 <div className="flex items-center">
                     <Label>
-                        <InputWithIcon variant={"outline"}>
-                            <Search size={16} />
-                            <input
+                        <InputGroup>
+                            <InputGroupAddon>
+                                <Search size={16} />
+                            </InputGroupAddon>
+                            <InputGroupInput
                                 disabled={isLoading}
                                 className="disabled:cursor-not-allowed"
                                 type="search"
@@ -101,7 +103,7 @@ export function DataTableTemplate({
                                 placeholder={searchPlaceHolder}
                                 onChange={e => onSearchChange(e.target.value)}
                             />
-                        </InputWithIcon>
+                        </InputGroup>
                     </Label>
                     <Tooltip>
                         <TooltipTrigger asChild>

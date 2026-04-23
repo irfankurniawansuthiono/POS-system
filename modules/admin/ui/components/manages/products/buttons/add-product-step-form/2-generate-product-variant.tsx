@@ -2,7 +2,7 @@
 
 import { ButtonWithIcon } from "@/components/custom/button-with-icon";
 import { Button } from "@/components/ui/button";
-import { Dialog, DialogContent, DialogDescription, DialogTitle } from "@/components/ui/dialog";
+import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogTitle } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Table, TableBody, TableCell, TableFooter, TableHead, TableHeader, TableRow } from "@/components/ui/table";
@@ -23,10 +23,11 @@ export function GenerateProductVariantsForm({
     onNext: (data: GenerateVariantAttribute) => void;
     defaultValues?: GenerateVariantAttribute;
     onPrev: () => void;
-    combinated: { name: string; values: string[] }[] | null;
-    setCombinated: React.Dispatch<React.SetStateAction<{ name: string; values: string[] }[] | null>>;
+    combinated: { name: string; values: string[] }[];
+    setCombinated: React.Dispatch<React.SetStateAction<{ name: string; values: string[] }[]>>;
 }) {
     const [isDeleting, setIsDeleting] = useState(false);
+    const [openConfirmation, setOpenConfirmation] = useState(false);
 
     const form = useForm<GenerateVariantAttribute>({
         resolver: zodResolver(GenerateVariantAttributeSchema),
@@ -59,6 +60,7 @@ export function GenerateProductVariantsForm({
         form.handleSubmit(data => {
             const generatedData = generateCombinations(data.attributes);
             setCombinated(generatedData);
+            setOpenConfirmation(true);
         })();
     };
     return (
@@ -121,8 +123,11 @@ export function GenerateProductVariantsForm({
                     </div>
                 ))}
             </div>
-            <Dialog open={!!combinated} onOpenChange={open => !open && setCombinated(null)}>
-                <DialogContent onInteractOutside={e => e.preventDefault()}>
+            <Dialog open={openConfirmation} onOpenChange={setOpenConfirmation}>
+                <DialogContent
+                    className="max-w-[80svw] max-h-[90svh] overflow-y-auto"
+                    onInteractOutside={e => e.preventDefault()}
+                >
                     <DialogTitle>Generated Variants Combination</DialogTitle>
                     <DialogDescription>
                         Below are the generated combinations based on the attributes you provided. You can choose to
@@ -131,16 +136,16 @@ export function GenerateProductVariantsForm({
                     <Table>
                         <TableHeader className="table w-full table-fixed">
                             <TableRow>
-                                <TableHead className="w-10">#</TableHead>
-                                {attributeFields.map((attr, index) => (
-                                    <TableHead key={index}>{attr.name}</TableHead>
-                                ))}
+                                {combinated && combinated.length > 0
+                                    ? Object.keys(combinated[0]).map((key, index) => (
+                                          <TableHead key={index}>{key}</TableHead>
+                                      ))
+                                    : null}
                             </TableRow>
                         </TableHeader>
-                        <TableBody className="block max-h-75 overflow-y-auto w-full">
+                        <TableBody className="block max-w-[80svw] max-h-[50svh] overflow-y-auto">
                             {combinated?.map((combination, index) => (
                                 <TableRow key={index} className="table w-full table-fixed">
-                                    <TableCell className="font-medium w-10">{index + 1}</TableCell>
                                     {Object.values(combination).map((value, i) => (
                                         <TableCell key={i}>{value}</TableCell>
                                     ))}
@@ -155,9 +160,11 @@ export function GenerateProductVariantsForm({
                             </TableRow>
                         </TableFooter>
                     </Table>
-                    <Button onClick={() => onNext({ attributes: form.getValues().attributes || [] })}>
-                        Continue with this variants
-                    </Button>
+                    <DialogFooter>
+                        <Button onClick={() => onNext({ attributes: form.getValues().attributes || [] })}>
+                            Continue with this variants
+                        </Button>
+                    </DialogFooter>
                 </DialogContent>
             </Dialog>
             <div className="flex justify-end gap-2">
@@ -165,7 +172,7 @@ export function GenerateProductVariantsForm({
                     Previous
                 </Button>
                 <Button type="button" onClick={handleSubmit}>
-                    Generate Variants Combination
+                    Generate Combination
                 </Button>
             </div>
         </div>

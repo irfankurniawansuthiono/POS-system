@@ -17,18 +17,19 @@ import { ButtonWithIcon } from "@/components/custom/button-with-icon";
 import { useTRPC } from "@/trpc/client";
 import { useQuery } from "@tanstack/react-query";
 import { Plus } from "lucide-react";
-import React from "react";
+import React, { useState } from "react";
 
 // form
 import type { Category } from "@/app/generated/prisma";
 import type { FormDataAddProduct, ProductAddFormId } from "./add-product-step-form";
 import { ProductInfoForm } from "./add-product-step-form/1-product-info";
 import { GenerateProductVariantsForm } from "./add-product-step-form/2-generate-product-variant";
+import VariantInfo from "./add-product-step-form/3-variant-info";
 import { CompleteStep } from "./add-product-step-form/complete-setup";
 
 const { Stepper } = defineStepper(
     {
-        id: "product",
+        id: "productInfo",
         title: "Product Info",
         description: "Enter product details",
     },
@@ -36,6 +37,11 @@ const { Stepper } = defineStepper(
         id: "generateVariants",
         title: "Generate Variants",
         description: "Generate product variants",
+    },
+    {
+        id: "variantInfo",
+        title: "Variant Info",
+        description: "Enter variant details",
     },
     {
         id: "complete",
@@ -96,22 +102,22 @@ const StepperSeparatorWithStatus = ({ status, isLast }: { status: StepStatus; is
         <Stepper.Separator
             orientation="horizontal"
             data-status={status}
-            className="self-center bg-muted data-[status=success]:bg-primary data-[disabled]:opacity-50 transition-all duration-300 ease-in-out data-[orientation=horizontal]:h-0.5 data-[orientation=horizontal]:min-w-4 data-[orientation=horizontal]:flex-1"
+            className="self-center bg-muted data-[status=success]:bg-primary data-disabled:opacity-50 transition-all duration-300 ease-in-out data-[orientation=horizontal]:h-0.5 data-[orientation=horizontal]:min-w-4 data-[orientation=horizontal]:flex-1"
         />
     );
 };
 
 export default function AddProduct() {
     const trpc = useTRPC();
-
-    const [combinated, setCombinated] = React.useState<{ name: string; values: string[] }[] | null>(null);
+    const [combinated, setCombinated] = useState<{ name: string; values: string[] }[]>([]);
     const { data: categoriesData } = useQuery(trpc.category.get.queryOptions()) || [];
+
     return (
         <Dialog>
             <DialogTrigger asChild>
                 <ButtonWithIcon startIcon={<Plus />}>Add Product</ButtonWithIcon>
             </DialogTrigger>
-            <DialogContent onInteractOutside={e => e.preventDefault()} className="sm:max-w-fit">
+            <DialogContent onInteractOutside={e => e.preventDefault()} className="max-w-[80svw]! overflow-auto w-fit">
                 <DialogHeader>
                     <DialogTitle>Add Product</DialogTitle>
                     <DialogDescription>
@@ -124,8 +130,9 @@ export default function AddProduct() {
                         const stored = (id: ProductAddFormId) =>
                             stepper.metadata.get(id) as FormDataAddProduct | undefined;
                         const formData: FormDataAddProduct = {
-                            product: stored("product")?.product,
+                            productInfo: stored("productInfo")?.productInfo,
                             generateVariants: stored("generateVariants")?.generateVariants,
+                            variantsInfo: stored("variantInfo")?.variantsInfo,
                         };
 
                         return (
@@ -168,16 +175,16 @@ export default function AddProduct() {
                                     })}
                                 </Stepper.List>
 
-                                <div className="min-h-[280px] rounded border bg-card p-6">
+                                <div className="min-h-70 rounded border bg-card p-6">
                                     {stepper.flow.switch({
-                                        product: () => (
+                                        productInfo: () => (
                                             <ProductInfoForm
                                                 categoriesData={categoriesData as Category[]}
-                                                defaultValues={formData.product}
+                                                defaultValues={formData.productInfo}
                                                 onNext={data => {
-                                                    stepper.metadata.set("product", {
+                                                    stepper.metadata.set("productInfo", {
                                                         ...formData,
-                                                        product: data,
+                                                        productInfo: data,
                                                     });
                                                     stepper.navigation.next();
                                                 }}
@@ -195,6 +202,23 @@ export default function AddProduct() {
                                                     stepper.navigation.next();
                                                 }}
                                                 defaultValues={formData.generateVariants}
+                                                onPrev={() => {
+                                                    stepper.navigation.prev();
+                                                }}
+                                            />
+                                        ),
+                                        variantInfo: () => (
+                                            <VariantInfo
+                                                combinated={combinated}
+                                                formData={formData}
+                                                onNext={data => {
+                                                    stepper.metadata.set("variantInfo", {
+                                                        ...formData,
+                                                        variantsInfo: data,
+                                                    });
+                                                    stepper.navigation.next();
+                                                }}
+                                                defaultValues={formData.variantsInfo}
                                                 onPrev={() => {
                                                     stepper.navigation.prev();
                                                 }}
