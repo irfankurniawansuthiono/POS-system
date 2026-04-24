@@ -164,6 +164,11 @@ export const brandRouter = createTRPCRouter({
         .input(getListBrandSchema)
         .query(async ({ ctx, input }) => {
             const brands = await ctx.db.brand.findMany({
+                select: {
+                    id: true,
+                    name: true,
+                    logoUrl: true,
+                },
                 where: {
                     isActive: true,
                     ...(input.search && {

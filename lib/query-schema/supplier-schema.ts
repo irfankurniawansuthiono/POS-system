@@ -93,3 +93,8 @@ export const deleteSupplierSchema = z.object({
 export type EditSupplierFormValues = z.infer<typeof editSupplierSchema> & {
     id: string;
 };
+
+export const getListSupplierSchema = z.object({
+    search: z.string().optional(),
+    excludeId: z.string().optional(),
+});

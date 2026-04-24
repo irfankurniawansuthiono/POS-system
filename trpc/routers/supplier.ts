@@ -1,11 +1,35 @@
 import useGetUniquePrismaField from "@/hooks/get-unique-prisma-field";
 import { addSupplierSchema } from "@/lib/form-schema";
-import { deleteSupplierSchema, getSupplierSchema } from "@/lib/query-schema/supplier-schema";
+import { deleteSupplierSchema, getListSupplierSchema, getSupplierSchema } from "@/lib/query-schema/supplier-schema";
 import { createTRPCRouter, withRole } from "@/trpc/init";
 import z from "zod";
 
 /* eslint-disable @typescript-eslint/no-explicit-any */
 export const supplierRouter = createTRPCRouter({
+    getList: withRole("superadmin", "admin")
+        .input(getListSupplierSchema)
+        .query(async ({ ctx, input }) => {
+            const supplier = await ctx.db.supplier.findMany({
+                where: {
+                    NOT: {
+                        id: input.excludeId,
+                    },
+                    ...(input.search && {
+                        name: {
+                            contains: input.search,
+                            mode: "insensitive",
+                        },
+                    }),
+                },
+                select: {
+                    id: true,
+                    name: true,
+                },
+                orderBy: { name: "asc" },
+                take: 20, // limit hasil
+            });
+            return supplier;
+        }),
     get: withRole("superadmin")
         .input(getSupplierSchema)
         .query(async ({ ctx, input }) => {

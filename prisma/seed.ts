@@ -1,6 +1,39 @@
 import prisma from "@/lib/prisma";
 
 async function main() {
+    console.log("🌱 Seeding AppConfig...");
+
+    const appConfig = await prisma.appConfig.upsert({
+        where: {
+            id: "default-app-config", // pakai id tetap biar tidak duplicate
+        },
+        update: {},
+        create: {
+            id: "default-app-config",
+
+            // identity
+            shopName: "Toko Default",
+            ownerName: "Owner",
+            address: "Alamat toko",
+            phone: "08123456789",
+            email: "default@email.com",
+
+            // optional
+            website: null,
+            npwp: null,
+            nib: null,
+
+            // pricing
+            isPpnEnabled: true,
+            ppn: 0.11, // 11% ppn
+
+            // media
+            logoUrl: "",
+            bannerUrl: "",
+        },
+    });
+
+    console.log("✅ AppConfig seeded:", appConfig.id);
     const brands = [
         "Castrol",
         "Shell",

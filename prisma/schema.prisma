@@ -12,7 +12,50 @@ generator client {
 datasource db {
   provider = "postgresql"
 }
+model AppConfig {
+  id    String @id @default(cuid())
 
+  // identity
+  shopName String
+  ownerName String
+  address String
+  phone String
+  email String
+  website String?
+
+  // legal
+  npwp String?
+  nib  String?
+
+  // tax & pricing
+  ppn Decimal @default(0.11)
+  isPpnEnabled Boolean @default(true)
+  priceIncludesTax Boolean @default(false)
+  currency String @default("IDR")
+
+  // invoice
+  invoicePrefix String @default("INV")
+  invoiceCounter Int @default(0)
+  showLogoOnReceipt Boolean @default(true)
+  footerNote String?
+
+  // inventory
+  lowStockThreshold Int @default(5)
+
+  // media
+  logoUrl String
+  bannerUrl String
+  faviconUrl String?
+
+  // system
+  timezone String @default("Asia/Jakarta")
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  updatedBy String?
+
+  @@map("app_config")
+}
 model User {
   id            String   @id @default(cuid())
   name          String?
@@ -115,9 +158,6 @@ model VariantSupplier {
   id         String @id @default(cuid())
   variantId  String
   supplierId String
-
-  price     Decimal?
-  isPrimary Boolean  @default(false)
 
   variant  Variant  @relation(fields: [variantId], references: [id])
   supplier Supplier @relation(fields: [supplierId], references: [id])

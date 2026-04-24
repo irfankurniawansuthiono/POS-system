@@ -11,13 +11,20 @@ import {
 import type { VariantInfo } from "@/lib/query-schema/product-schema";
 import { Controller, useWatch } from "react-hook-form";
 
+import { AsyncSelect } from "@/components/custom/async-select";
+import SeparatorWithText from "@/components/custom/separator-with-text-1";
+import { Field, FieldError, FieldLabel } from "@/components/ui/field";
 import { Input } from "@/components/ui/input";
 import { InputGroup, InputGroupAddon, InputGroupInput } from "@/components/ui/input-group";
 import { Label } from "@/components/ui/label";
+import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
+import { useAppConfig } from "@/hooks/use-app-config";
 import { VariantInfoSchema } from "@/lib/query-schema/product-schema";
+import { useTRPC } from "@/trpc/client";
 import { FormatNumber, parseNumber } from "@/utils/formatNumber";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { Bot } from "lucide-react";
+import { useQueryClient } from "@tanstack/react-query";
+import { Bot, CircleQuestionMark } from "lucide-react";
 import { useEffect, useState } from "react";
 import { useForm } from "react-hook-form";
 
@@ -34,8 +41,10 @@ export default function VariantInfoSheet({
     defaultValues?: VariantInfo;
     onSave: (index: number, data: VariantInfo) => void;
 }) {
+    const { data: config } = useAppConfig();
     const [open, setOpen] = useState(false);
-
+    const queryClient = useQueryClient();
+    const trpc = useTRPC();
     const form = useForm<VariantInfo>({
         resolver: zodResolver(VariantInfoSchema),
         defaultValues: defaultValues ?? {
@@ -67,13 +76,24 @@ export default function VariantInfoSheet({
         control: form.control,
         name: "costPrice",
     });
+    const supplierIdValue = useWatch({
+        control: form.control,
+        name: "supplierId",
+    });
+
+    const supplierId2Value = useWatch({
+        control: form.control,
+        name: "supplierId2",
+    });
 
     useEffect(() => {
         if (profitMarginWatch !== undefined && costPriceWatch !== undefined) {
             const basePrice = costPriceWatch + (costPriceWatch * profitMarginWatch) / 100;
-            form.setValue("basePrice", basePrice);
+            const basePriceWithPPN =
+                config?.isPpnEnabled && Number(config.ppn) > 0 ? basePrice * Number(config.ppn) : basePrice;
+            form.setValue("basePrice", basePriceWithPPN);
         }
-    }, [profitMarginWatch, costPriceWatch, form]);
+    }, [profitMarginWatch, costPriceWatch, form, config?.isPpnEnabled, config?.ppn]);
 
     return (
         <Sheet open={open} onOpenChange={setOpen}>
@@ -82,7 +102,7 @@ export default function VariantInfoSheet({
                     Manage
                 </Button>
             </SheetTrigger>
-            <SheetContent onInteractOutside={e => e.preventDefault()}>
+            <SheetContent className="max-w-md overflow-y-auto" onInteractOutside={e => e.preventDefault()}>
                 <SheetHeader>
                     <SheetTitle>Variant Details</SheetTitle>
                     <SheetDescription>
@@ -95,7 +115,7 @@ export default function VariantInfoSheet({
                     </SheetDescription>
                 </SheetHeader>
 
-                <div className="space-y-3 p-4">
+                <div className="space-y-4 p-4">
                     <Controller
                         control={form.control}
                         name="sku"
@@ -173,7 +193,12 @@ export default function VariantInfoSheet({
                                     Profit Margin (%)
                                 </Label>
                                 <InputGroup>
-                                    <InputGroupInput placeholder="Profit Margin (%)" {...field} />
+                                    <InputGroupInput
+                                        placeholder="Profit Margin (%)"
+                                        {...field}
+                                        value={field.value && FormatNumber(field.value)}
+                                        onChange={e => field.onChange(parseNumber(e.target.value))}
+                                    />
                                     <InputGroupAddon align="inline-end">
                                         <span>%</span>
                                     </InputGroupAddon>
@@ -210,10 +235,29 @@ export default function VariantInfoSheet({
                         name="basePrice"
                         render={({ field, fieldState }) => (
                             <div>
-                                <Label htmlFor={`basePrice-${index}`} className="mb-1">
-                                    Base Price (1pcs)
-                                    <Bot className="inline-block" size={16} />
-                                </Label>
+                                <div className="flex items-center justify-between">
+                                    <Label htmlFor={`basePrice-${index}`} className="mb-1">
+                                        Base Price (1pcs)
+                                        <Bot className="inline-block" size={16} />
+                                    </Label>
+                                    <Tooltip>
+                                        <TooltipTrigger asChild>
+                                            <Button size="icon" variant="ghost">
+                                                <CircleQuestionMark size={16} />
+                                            </Button>
+                                        </TooltipTrigger>
+                                        <TooltipContent>
+                                            {config?.isPpnEnabled && Number(config?.ppn) > 0 ? (
+                                                <p>
+                                                    Base Price is calculated from Cost Price + Profit Margin, then
+                                                    multiplied by PPN ({Number(config.ppn) * 100}%).
+                                                </p>
+                                            ) : (
+                                                <p>Base Price is calculated from Cost Price + Profit Margin.</p>
+                                            )}
+                                        </TooltipContent>
+                                    </Tooltip>
+                                </div>
                                 <InputGroup>
                                     <InputGroupInput
                                         disabled
@@ -237,6 +281,82 @@ export default function VariantInfoSheet({
                             </div>
                         )}
                     />
+                    <div className="flex items-center justify-between">
+                        <Controller
+                            name={"supplierId"}
+                            control={form.control}
+                            render={({ field, fieldState }) => (
+                                <Field data-invalid={fieldState.invalid}>
+                                    <FieldLabel htmlFor="stepper-form-variant-supplier">Supplier </FieldLabel>
+                                    <AsyncSelect
+                                        key={supplierId2Value}
+                                        fetcher={async query => {
+                                            return await queryClient.fetchQuery(
+                                                trpc.supplier.getList.queryOptions({
+                                                    search: query ?? "",
+                                                    excludeId: supplierId2Value,
+                                                }),
+                                            );
+                                        }}
+                                        value={field.value}
+                                        onChange={field.onChange}
+                                        placeholder="Select a supplier..."
+                                        renderOption={option => (
+                                            <div className="flex items-center gap-2">
+                                                <p>{option.name}</p>
+                                            </div>
+                                        )}
+                                        getOptionValue={option => option.id}
+                                        getDisplayValue={option => (
+                                            <div className="flex items-center gap-2">
+                                                <p>{option.name}</p>
+                                            </div>
+                                        )}
+                                        label="Supplier"
+                                    />
+                                    {fieldState.invalid && <FieldError errors={[fieldState.error]} />}
+                                </Field>
+                            )}
+                        />
+                        <Controller
+                            name={"supplierId2"}
+                            control={form.control}
+                            render={({ field, fieldState }) => (
+                                <Field data-invalid={fieldState.invalid}>
+                                    <FieldLabel htmlFor="stepper-form-variant-supplier-2">Supplier 2</FieldLabel>
+                                    <AsyncSelect
+                                        disabled={!supplierIdValue}
+                                        key={supplierIdValue}
+                                        fetcher={async query => {
+                                            return await queryClient.fetchQuery(
+                                                trpc.supplier.getList.queryOptions({
+                                                    search: query ?? "",
+                                                    excludeId: supplierId2Value,
+                                                }),
+                                            );
+                                        }}
+                                        value={field.value || ""}
+                                        onChange={field.onChange}
+                                        placeholder="Select a supplier..."
+                                        renderOption={option => (
+                                            <div className="flex items-center gap-2">
+                                                <p>{option.name}</p>
+                                            </div>
+                                        )}
+                                        getOptionValue={option => option.id}
+                                        getDisplayValue={option => (
+                                            <div className="flex items-center gap-2">
+                                                <p>{option.name}</p>
+                                            </div>
+                                        )}
+                                        label="Supplier 2"
+                                    />
+                                    {fieldState.invalid && <FieldError errors={[fieldState.error]} />}
+                                </Field>
+                            )}
+                        />
+                    </div>
+                    <SeparatorWithText text="Variant Pricing Rule" />
                     {/* field lainnya... */}
                 </div>
                 <SheetFooter>
