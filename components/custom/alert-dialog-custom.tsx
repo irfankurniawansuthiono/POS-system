@@ -9,6 +9,7 @@ import {
     AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
 import { Input } from "@/components/ui/input";
+import { Trash } from "lucide-react";
 import { useState } from "react";
 import { Spinner } from "../ui/spinner";
 
@@ -17,7 +18,7 @@ interface DeleteConfirmationDialogProps {
     onOpenChange: (open: boolean) => void;
     title: string;
     description: string;
-    onConfirm: () => void;
+    onConfirm: (e: React.MouseEvent<HTMLButtonElement>) => void;
     isDeleting: boolean;
     confirmationKeyword?: string;
     confirmationText?: string;
@@ -49,7 +50,9 @@ export function DeleteConfirmationDialog({
             {children}
             <AlertDialogContent>
                 <AlertDialogHeader>
-                    <AlertDialogTitle>{title}</AlertDialogTitle>
+                    <AlertDialogTitle className="flex items-center gap-2">
+                        <Trash size={24} color="red" /> {title}
+                    </AlertDialogTitle>
                     <AlertDialogDescription>{description}</AlertDialogDescription>
                     <div className="mt-4">
                         <p className="mb-2 text-sm text-muted-foreground">
@@ -66,9 +69,9 @@ export function DeleteConfirmationDialog({
                 <AlertDialogFooter>
                     <AlertDialogCancel disabled={isDeleting}>Cancel</AlertDialogCancel>
                     <AlertDialogAction
-                        onClick={onConfirm}
+                        onClick={(e: React.MouseEvent<HTMLButtonElement>) => onConfirm(e)}
                         disabled={isDeleting || confirmationInput !== confirmationKeyword}
-                        className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+                        className="bg-destructive! text-destructive-foreground! hover:bg-destructive/90 hover:cursor-pointer"
                     >
                         {isDeleting ? (
                             <>

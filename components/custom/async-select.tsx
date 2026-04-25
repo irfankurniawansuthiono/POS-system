@@ -64,7 +64,6 @@ export function AsyncSelect<T>({
     value,
     onChange,
     disabled = false,
-    width = "200px",
     className,
     triggerClassName,
     noResultsMessage,
@@ -156,19 +155,18 @@ export function AsyncSelect<T>({
                     variant="outline"
                     role="combobox"
                     aria-expanded={open}
-                    className={cn("justify-between", disabled && "opacity-50 cursor-not-allowed", triggerClassName)}
-                    style={{ width: width }}
+                    className={cn(
+                        "justify-between",
+                        disabled && "opacity-50 cursor-not-allowed! w-full ",
+                        triggerClassName,
+                    )}
                     disabled={disabled}
                 >
                     {selectedOption ? getDisplayValue(selectedOption) : placeholder}
                     <ChevronsUpDown className="opacity-50" size={10} />
                 </Button>
             </PopoverTrigger>
-            <PopoverContent
-                style={{ width: width }}
-                onWheel={e => e.stopPropagation()}
-                className={cn("p-0", className)}
-            >
+            <PopoverContent onWheel={e => e.stopPropagation()} className={cn("p-0", className)}>
                 <Command shouldFilter={false}>
                     <div className="relative border-b w-full">
                         <CommandInput

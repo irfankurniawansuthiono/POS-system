@@ -7,9 +7,10 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Table, TableBody, TableCell, TableFooter, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { GenerateVariantAttributeSchema, type GenerateVariantAttribute } from "@/lib/query-schema/product-schema";
+import { cn } from "@/lib/utils";
 import generateCombinations from "@/utils/generateVariantsCombination";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { Plus, Trash } from "lucide-react";
+import { Bot, Plus, Trash } from "lucide-react";
 import { useState } from "react";
 import { Controller, useFieldArray, useForm } from "react-hook-form";
 
@@ -73,7 +74,7 @@ export function GenerateProductVariantsForm({
             <div className="max-h-75 overflow-y-auto">
                 {attributeFields.map((attr, index) => (
                     <div
-                        key={index}
+                        key={attr.id}
                         className="border rounded-md p-2 flex flex-col gap-4"
                         data-invalid={!attr.name || !attr.values}
                     >
@@ -84,8 +85,8 @@ export function GenerateProductVariantsForm({
                                 control={form.control}
                                 render={({ field }) => (
                                     <Input
+                                        placeholder={"e.g. Color, Size, Material"}
                                         {...field}
-                                        placeholder="e.g. Color, Size, Material"
                                         aria-label={`Attribute ${index + 1} Name`}
                                     />
                                 )}
@@ -110,14 +111,10 @@ export function GenerateProductVariantsForm({
                                 size={"icon"}
                                 disabled={isDeleting || attributeFields.length === 1}
                                 type="button"
-                                onClick={() => handleRemoveAttribute(index)}
+                                onClick={() => index !== 0 && handleRemoveAttribute(index)}
                                 variant="destructive"
                             >
-                                {isDeleting ? (
-                                    <Trash className="h-4 w-4 animate-pulse" />
-                                ) : (
-                                    <Trash className="h-4 w-4" />
-                                )}
+                                <Trash className={cn("h-4 w-4", isDeleting && "animate-pulse")} />
                             </Button>
                         </div>
                     </div>
@@ -128,7 +125,9 @@ export function GenerateProductVariantsForm({
                     className="max-w-[80svw] max-h-[90svh] overflow-y-auto"
                     onInteractOutside={e => e.preventDefault()}
                 >
-                    <DialogTitle>Generated Variants Combination</DialogTitle>
+                    <DialogTitle className="flex items-center gap-2">
+                        <Bot className="inline-block" size={30} /> Generated Variants Combination
+                    </DialogTitle>
                     <DialogDescription>
                         Below are the generated combinations based on the attributes you provided. You can choose to
                         continue with these variants or go back to modify the attributes.
@@ -160,6 +159,9 @@ export function GenerateProductVariantsForm({
                             </TableRow>
                         </TableFooter>
                     </Table>
+                    <p className="mt-4 text-sm text-muted-foreground">
+                        These variants generated automatically. You can delete the ones you don&apos;t need afterward.
+                    </p>
                     <DialogFooter>
                         <Button onClick={() => onNext({ attributes: form.getValues().attributes || [] })}>
                             Continue with this variants

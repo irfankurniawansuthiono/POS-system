@@ -209,6 +209,7 @@ export default function AddProduct() {
                                         ),
                                         variantInfo: () => (
                                             <VariantInfo
+                                                setCombinated={setCombinated}
                                                 combinated={combinated}
                                                 formData={formData}
                                                 onNext={data => {

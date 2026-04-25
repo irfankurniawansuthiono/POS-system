@@ -6,7 +6,8 @@ import { flexRender, getCoreRowModel, useReactTable, type ColumnDef } from "@tan
 import { useCallback, useMemo } from "react";
 import { useForm } from "react-hook-form";
 import type { FormDataAddProduct } from ".";
-import VariantInfoSheet from "./variant-info-sheet";
+import VariantDeleteGenerated from "./button/variant-delete-generated";
+import VariantInfoSheet from "./button/variant-info-sheet";
 
 type CombinationRow = { [key: string]: string | string[] };
 
@@ -15,6 +16,7 @@ export default function VariantInfo({
     defaultValues,
     onPrev,
     combinated,
+    setCombinated,
     formData,
 }: {
     onNext: (data: VariantsInfo) => void;
@@ -22,15 +24,11 @@ export default function VariantInfo({
     formData: FormDataAddProduct;
     onPrev: () => void;
     combinated: { name: string; values: string[] }[];
+    setCombinated: React.Dispatch<React.SetStateAction<{ name: string; values: string[] }[]>>;
 }) {
     const form = useForm<VariantsInfo>({
         defaultValues: { variants: defaultValues?.variants || [] },
     });
-
-    // const { fields } = useFieldArray({
-    //     control: form.control,
-    //     name: "variants",
-    // });
 
     const handleVariantSave = useCallback(
         (index: number, data: VariantInfo) => {
@@ -65,18 +63,28 @@ export default function VariantInfo({
                 );
 
                 return (
-                    <VariantInfoSheet
-                        productName={formData.productInfo?.name || ""}
-                        index={row.index}
-                        rowValues={rowValues}
-                        onSave={handleVariantSave}
-                    />
+                    <div className="flex items-center gap-2">
+                        <VariantInfoSheet
+                            productName={formData.productInfo?.name || ""}
+                            index={row.index}
+                            rowValues={rowValues}
+                            onSave={handleVariantSave}
+                        />
+                        <VariantDeleteGenerated
+                            rowValues={rowValues}
+                            onConfirm={() => {
+                                const newCombinated = [...combinated];
+                                newCombinated.splice(row.index, 1);
+                                setCombinated(newCombinated);
+                            }}
+                        />
+                    </div>
                 );
             },
         };
 
         return [...dynamicCols, actionCol];
-    }, [combinated, handleVariantSave, formData]);
+    }, [combinated, handleVariantSave, formData, setCombinated]);
 
     const table = useReactTable({
         data: combinated as CombinationRow[],
@@ -86,7 +94,10 @@ export default function VariantInfo({
 
     return (
         <div className="space-y-4">
-            <Heading title={formData.productInfo?.name || "N/A"} description="Enter variant details" />
+            <Heading
+                title={formData.productInfo?.name || "N/A"}
+                description="Each step will be marked as complete once all required variant details are filled in."
+            />
             <Table>
                 <TableHeader className="table w-full table-fixed">
                     {table.getHeaderGroups().map(headerGroup => (
