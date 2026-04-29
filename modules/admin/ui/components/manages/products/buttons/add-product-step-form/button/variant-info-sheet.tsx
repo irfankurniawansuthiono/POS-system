@@ -21,7 +21,8 @@ import { Label } from "@/components/ui/label";
 import { useAppConfig } from "@/hooks/use-app-config";
 import { VariantInfoSchema } from "@/lib/query-schema/product-schema";
 import { useTRPC } from "@/trpc/client";
-import { FormatNumber, parseNumber } from "@/utils/formatNumber";
+
+import { formatNumber, parseNumber } from "@/utils/formatNumber";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useQueryClient } from "@tanstack/react-query";
 import { Bot, Plus, Settings, Trash } from "lucide-react";
@@ -34,12 +35,17 @@ export default function VariantInfoSheet({
     defaultValues,
     onSave,
     productName,
+    externalErrors,
 }: {
     productName: string;
     index: number;
     rowValues: Record<string, unknown>;
     defaultValues?: VariantInfo;
     onSave: (index: number, data: VariantInfo) => void;
+    externalErrors?: {
+        barcode?: string;
+        sku?: string;
+    };
 }) {
     const { data: config } = useAppConfig();
     const [open, setOpen] = useState(false);
@@ -107,13 +113,15 @@ export default function VariantInfoSheet({
     });
 
     useEffect(() => {
+        form.setValue("displayName", `${productName} - ${Object.values(rowValues).join(", ")}`);
+    }, [productName, rowValues, form]);
+
+    useEffect(() => {
         pricingRulesWatch?.forEach((rule, ruleIndex) => {
             const profitMargin = rule.profitMargin ?? 0;
             const basePrice = costPriceWatch + (costPriceWatch * profitMargin) / 100;
             const priceWithPPN =
                 config?.isPpnEnabled && Number(config.ppn) > 0 ? basePrice * Number(config.ppn) + basePrice : basePrice;
-
-            // cek apakah nilai berubah sebelum setValue
             const currentPrice = form.getValues(`pricingRules.${ruleIndex}.price`);
             if (currentPrice !== priceWithPPN) {
                 form.setValue(`pricingRules.${ruleIndex}.price`, priceWithPPN, {
@@ -128,10 +136,23 @@ export default function VariantInfoSheet({
         config?.ppn,
         form,
         pricingRulesWatch,
-        // ambil hanya profitMargin dari setiap rule, bukan seluruh object
         // eslint-disable-next-line react-hooks/exhaustive-deps
         pricingRulesWatch?.map(r => r.profitMargin).join(","),
     ]);
+
+    useEffect(() => {
+        pricingRulesWatch?.forEach((rule, ruleIndex) => {
+            if (ruleIndex < pricingRulesFields.length - 1) {
+                const nextMinQty = pricingRulesWatch[ruleIndex + 1]?.minQty ?? 1;
+                const expectedMaxQty = Math.max(0, nextMinQty - 1);
+
+                // hanya setValue jika nilainya memang berbeda
+                if (rule.maxQty !== expectedMaxQty) {
+                    form.setValue(`pricingRules.${ruleIndex}.maxQty`, expectedMaxQty);
+                }
+            }
+        });
+    }, [form, pricingRulesFields, pricingRulesWatch]);
 
     return (
         <Sheet open={open} onOpenChange={setOpen}>
@@ -164,8 +185,10 @@ export default function VariantInfoSheet({
                                         SKU
                                     </Label>
                                     <Input {...field} placeholder="SKU" />
-                                    {fieldState.error && (
-                                        <p className="text-sm text-red-500">{fieldState.error.message}</p>
+                                    {(fieldState.error || externalErrors?.sku) && (
+                                        <p className="text-sm text-red-500">
+                                            {fieldState.error?.message || externalErrors?.sku}
+                                        </p>
                                     )}
                                 </div>
                             )}
@@ -179,8 +202,10 @@ export default function VariantInfoSheet({
                                         Barcode
                                     </Label>
                                     <Input {...field} placeholder="Barcode" />
-                                    {fieldState.error && (
-                                        <p className="text-sm text-red-500">{fieldState.error.message}</p>
+                                    {(fieldState.error || externalErrors?.barcode) && (
+                                        <p className="text-sm text-red-500">
+                                            {fieldState.error?.message || externalErrors?.barcode}
+                                        </p>
                                     )}
                                 </div>
                             )}
@@ -195,12 +220,7 @@ export default function VariantInfoSheet({
                                     Display Name
                                     <Bot className="inline-block" size={16} />
                                 </Label>
-                                <Input
-                                    {...field}
-                                    disabled
-                                    value={`${productName} - ${Object.values(rowValues).join(", ")}`}
-                                    placeholder="Display Name"
-                                />
+                                <Input {...field} disabled placeholder="Display Name" />
                                 {fieldState.error && <p className="text-sm text-red-500">{fieldState.error.message}</p>}
                             </div>
                         )}
@@ -218,7 +238,7 @@ export default function VariantInfoSheet({
                                         <InputGroupInput
                                             placeholder="Modal"
                                             {...field}
-                                            value={field.value && FormatNumber(field.value)}
+                                            value={field.value && formatNumber(field.value)}
                                             onChange={e => field.onChange(parseNumber(e.target.value))}
                                         />
                                         <InputGroupAddon>
@@ -243,7 +263,7 @@ export default function VariantInfoSheet({
                                         <InputGroupInput
                                             placeholder="Stock"
                                             {...field}
-                                            value={field.value && FormatNumber(field.value)}
+                                            value={field.value && formatNumber(field.value)}
                                             onChange={e => field.onChange(parseNumber(e.target.value))}
                                         />
                                         <InputGroupAddon align="inline-end">
@@ -361,7 +381,13 @@ export default function VariantInfoSheet({
                                             <FieldLabel htmlFor={`stepper-form-variant-pricing-rule-min-qty-${index}`}>
                                                 Min Qty
                                             </FieldLabel>
-                                            <Input disabled={index === 0} type="number" {...field} />
+                                            <Input
+                                                disabled={index === 0}
+                                                type="number"
+                                                {...field}
+                                                value={field.value && formatNumber(field.value)}
+                                                onChange={e => field.onChange(parseNumber(e.target.value))}
+                                            />
                                             {fieldState.invalid && <FieldError errors={[fieldState.error]} />}
                                         </Field>
                                     )}
@@ -377,12 +403,13 @@ export default function VariantInfoSheet({
                                             <Input
                                                 disabled
                                                 type="number"
-                                                {...field}
+                                                placeholder={index === pricingRulesFields.length - 1 ? "∞" : undefined}
                                                 value={
                                                     index < pricingRulesFields.length - 1
-                                                        ? Math.max(0, (pricingRulesFields[index + 1]?.minQty ?? 0) - 1)
-                                                        : 0
+                                                        ? formatNumber(pricingRulesWatch?.[index]?.maxQty ?? 0)
+                                                        : ""
                                                 }
+                                                onChange={e => field.onChange(parseNumber(e.target.value))}
                                             />
                                             {fieldState.invalid && <FieldError errors={[fieldState.error]} />}
                                         </Field>
@@ -400,7 +427,7 @@ export default function VariantInfoSheet({
                                                 <InputGroupInput
                                                     placeholder="Profit Margin (%)"
                                                     {...field}
-                                                    value={field.value && FormatNumber(field.value)}
+                                                    value={field.value && formatNumber(field.value)}
                                                     onChange={e => field.onChange(parseNumber(e.target.value))}
                                                 />
                                                 <InputGroupAddon align="inline-end">
@@ -432,7 +459,7 @@ export default function VariantInfoSheet({
                                                         costPriceWatch &&
                                                         config!.ppn! &&
                                                         config!.isPpnEnabled
-                                                            ? FormatNumber(
+                                                            ? formatNumber(
                                                                   calculateVariantPrice(
                                                                       costPriceWatch,
                                                                       pricingRulesWatch[index].profitMargin,

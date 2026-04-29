@@ -3,8 +3,9 @@ import { Button } from "@/components/ui/button";
 import { Table, TableBody, TableCell, TableFooter, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import type { VariantInfo, VariantsInfo } from "@/lib/query-schema/product-schema";
 import { flexRender, getCoreRowModel, useReactTable, type ColumnDef } from "@tanstack/react-table";
+import { Check, Minus } from "lucide-react";
 import { useCallback, useMemo } from "react";
-import { useForm } from "react-hook-form";
+import { useForm, useWatch } from "react-hook-form";
 import type { FormDataAddProduct } from ".";
 import VariantDeleteGenerated from "./button/variant-delete-generated";
 import VariantInfoSheet from "./button/variant-info-sheet";
@@ -30,10 +31,13 @@ export default function VariantInfo({
         defaultValues: { variants: defaultValues?.variants || [] },
     });
 
+    const watchedVariants = useWatch({ control: form.control, name: "variants" });
+
     const handleVariantSave = useCallback(
-        (index: number, data: VariantInfo) => {
+        async (index: number, data: VariantInfo) => {
             form.setValue(`variants.${index}`, data);
         },
+
         [form],
     );
 
@@ -49,6 +53,26 @@ export default function VariantInfo({
                 return Array.isArray(value) ? value.join(", ") : String(value ?? "");
             },
         }));
+
+        const statusManageCols: ColumnDef<CombinationRow> = {
+            id: "status",
+            header: "Status",
+            cell: ({ row }) => {
+                const isManaged = !!watchedVariants?.[row.index];
+
+                return isManaged ? (
+                    <div className="flex items-center gap-2 text-green-600">
+                        <Check className="size-4" />
+                        <span className="text-sm">Managed</span>
+                    </div>
+                ) : (
+                    <div className="flex items-center gap-2 text-muted-foreground">
+                        <Minus className="size-4" />
+                        <span className="text-sm">Not managed</span>
+                    </div>
+                );
+            },
+        };
 
         const actionCol: ColumnDef<CombinationRow> = {
             id: "actions",
@@ -67,6 +91,7 @@ export default function VariantInfo({
                         <VariantInfoSheet
                             productName={formData.productInfo?.name || ""}
                             index={row.index}
+                            defaultValues={watchedVariants?.[row.index]}
                             rowValues={rowValues}
                             onSave={handleVariantSave}
                         />
@@ -83,14 +108,21 @@ export default function VariantInfo({
             },
         };
 
-        return [...dynamicCols, actionCol];
-    }, [combinated, handleVariantSave, formData, setCombinated]);
+        return [...dynamicCols, statusManageCols, actionCol];
+    }, [combinated, handleVariantSave, formData, setCombinated, watchedVariants]);
 
     const table = useReactTable({
         data: combinated as CombinationRow[],
         columns,
         getCoreRowModel: getCoreRowModel(),
     });
+
+    const handleSubmit = () => {
+        console.debug("errors", form.formState.errors);
+        form.handleSubmit(data => {
+            onNext(data);
+        })();
+    };
 
     return (
         <div className="space-y-4">
@@ -133,10 +165,10 @@ export default function VariantInfo({
             </Table>
 
             <div className="flex justify-end gap-2">
-                <Button type="button" onClick={onPrev}>
+                <Button type="button" variant="secondary" onClick={onPrev}>
                     Previous
                 </Button>
-                <Button type="button" onClick={() => {}}>
+                <Button type="button" disabled={!form.formState.isValid} onClick={handleSubmit}>
                     Next
                 </Button>
             </div>

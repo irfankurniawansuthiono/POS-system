@@ -22,6 +22,7 @@ export function CompleteStep({
     categoriesData: Category[];
     onPrev: () => void;
 }) {
+    console.log("formData", formData);
     const trpc = useTRPC();
     const categoryText =
         formData.productInfo?.category
@@ -34,7 +35,7 @@ export function CompleteStep({
     const { data: brand } = useQuery(trpc.brand.getById.queryOptions({ id: formData.productInfo?.brandId || "" }));
     return (
         <div className="space-y-4">
-            <div className="rounded border bg-secondary p-4 space-y-3">
+            <div className="rounded border bg-secondary w-full p-4 space-y-3">
                 <h3 className="font-semibold">Summary</h3>
                 <div>
                     <SeparatorWithText text="Product Summary" />
@@ -78,6 +79,9 @@ export function CompleteStep({
                         </TableBody>
                     </Table>
                 </div>
+
+                {/* product variants */}
+                <SeparatorWithText text="Product Variants" />
             </div>
             <div className="flex justify-end gap-4">
                 <Button type="button" variant="secondary" onClick={onPrev}>

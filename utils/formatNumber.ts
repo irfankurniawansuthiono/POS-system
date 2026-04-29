@@ -1,5 +1,5 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
-export const FormatNumber = (value: any) => {
+export const formatNumber = (value: any) => {
     const raw = String(value || "");
     return raw.replace(/\D/g, "").replace(/\B(?=(\d{3})+(?!\d))/g, ".");
 };

@@ -117,7 +117,10 @@ export default function AddProduct() {
             <DialogTrigger asChild>
                 <ButtonWithIcon startIcon={<Plus />}>Add Product</ButtonWithIcon>
             </DialogTrigger>
-            <DialogContent onInteractOutside={e => e.preventDefault()} className="max-w-[80svw]! overflow-auto w-fit">
+            <DialogContent
+                onInteractOutside={e => e.preventDefault()}
+                className="max-w-[90svw] sm:max-w-[80svw]! w-fit max-h-[90svh] overflow-y-auto"
+            >
                 <DialogHeader>
                     <DialogTitle>Add Product</DialogTitle>
                     <DialogDescription>
@@ -137,7 +140,7 @@ export default function AddProduct() {
 
                         return (
                             <>
-                                <Stepper.List className="flex list-none gap-2 flex-row items-center justify-between">
+                                <Stepper.List className="sm:flex sm:list-none sm:gap-2 sm:flex-row sm:items-center sm:justify-between overflow-auto ">
                                     {stepper.state.all.map((stepData, index) => {
                                         const currentIndex = stepper.state.current.index;
                                         const status =
@@ -175,7 +178,7 @@ export default function AddProduct() {
                                     })}
                                 </Stepper.List>
 
-                                <div className="min-h-70 rounded border bg-card p-6">
+                                <div className="bg-card p-6 rounded-md">
                                     {stepper.flow.switch({
                                         productInfo: () => (
                                             <ProductInfoForm

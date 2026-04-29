@@ -170,7 +170,7 @@ export function GenerateProductVariantsForm({
                 </DialogContent>
             </Dialog>
             <div className="flex justify-end gap-2">
-                <Button type="button" onClick={onPrev}>
+                <Button type="button" variant="secondary" onClick={onPrev}>
                     Previous
                 </Button>
                 <Button type="button" onClick={handleSubmit}>

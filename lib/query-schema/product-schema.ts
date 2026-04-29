@@ -24,7 +24,7 @@ export const pricingRules = z
         z.object({
             profitMargin: z.number().min(0, "Profit margin must be a positive number"),
             minQty: z.number().min(1, "Minimum quantity must be at least 1"),
-            maxQty: z.number().min(1, "Maximum quantity must be at least 1").optional(),
+            maxQty: z.number().optional(),
             price: z.number().min(0, "Price must be a positive number"),
         }),
     )
@@ -32,7 +32,7 @@ export const pricingRules = z
         for (let i = 0; i < rules.length; i++) {
             const current = rules[i];
 
-            if (current.maxQty !== undefined && current.maxQty <= current.minQty) {
+            if (current.maxQty !== undefined && current.maxQty <= current.minQty && i !== rules.length - 1) {
                 ctx.addIssue({
                     code: z.ZodIssueCode.custom,
                     message: "Max quantity must be greater than min quantity",
