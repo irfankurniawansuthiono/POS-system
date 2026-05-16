@@ -52,10 +52,25 @@ export default function VariantDetailPreview({ data }: { data: VariantInfo }) {
                     <Table className="w-full border-collapse text-sm">
                         <TableBody>
                             <TableRow className="border-b">
-                                <TableCell className="py-3 pr-4 font-medium text-muted-foreground w-35">Key</TableCell>
-                                <TableCell className="py-3 break-all">{data.key}</TableCell>
+                                <TableCell className="py-3 pr-4 font-medium text-muted-foreground">SKU</TableCell>
+                                <TableCell className="py-3">{data.sku}</TableCell>
                             </TableRow>
 
+                            <TableRow className="border-b">
+                                <TableCell className="py-3 pr-4 font-medium text-muted-foreground">Barcode</TableCell>
+                                <TableCell className="py-3 break-all">{data.barcode}</TableCell>
+                            </TableRow>
+
+                            <TableRow className="border-b">
+                                <TableCell className="py-3 pr-4 font-medium text-muted-foreground">Stock</TableCell>
+                                <TableCell className="py-3">{data.stock}</TableCell>
+                            </TableRow>
+                            <TableRow className="border-b">
+                                <TableCell className="py-3 pr-4 font-medium text-muted-foreground">
+                                    Cost Price
+                                </TableCell>
+                                <TableCell className="py-3">Rp {data.costPrice.toLocaleString("id-ID")}</TableCell>
+                            </TableRow>
                             <TableRow className="border-b">
                                 <TableCell className="py-3 pr-4 font-medium text-muted-foreground">
                                     Supplier 1
@@ -67,27 +82,6 @@ export default function VariantDetailPreview({ data }: { data: VariantInfo }) {
                                     Supplier 2
                                 </TableCell>
                                 <TableCell className="py-3">{supplier2?.name ?? "-"}</TableCell>
-                            </TableRow>
-                            <TableRow className="border-b">
-                                <TableCell className="py-3 pr-4 font-medium text-muted-foreground">Stock</TableCell>
-                                <TableCell className="py-3">{data.stock}</TableCell>
-                            </TableRow>
-
-                            <TableRow className="border-b">
-                                <TableCell className="py-3 pr-4 font-medium text-muted-foreground">Barcode</TableCell>
-                                <TableCell className="py-3 break-all">{data.barcode}</TableCell>
-                            </TableRow>
-
-                            <TableRow className="border-b">
-                                <TableCell className="py-3 pr-4 font-medium text-muted-foreground">SKU</TableCell>
-                                <TableCell className="py-3">{data.sku}</TableCell>
-                            </TableRow>
-
-                            <TableRow className="border-b">
-                                <TableCell className="py-3 pr-4 font-medium text-muted-foreground">
-                                    Cost Price
-                                </TableCell>
-                                <TableCell className="py-3">Rp {data.costPrice.toLocaleString("id-ID")}</TableCell>
                             </TableRow>
 
                             <TableRow className="align-top border-b">
