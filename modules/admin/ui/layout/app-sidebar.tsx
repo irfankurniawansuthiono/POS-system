@@ -231,31 +231,44 @@ export default function AppSidebar() {
                                             </SidebarMenuButton>
                                         </CollapsibleTrigger>
                                         <CollapsibleContent>
-                                            <SidebarMenuSub>
-                                                {item.items?.map(subItem => (
-                                                    <SidebarMenuSubItem key={subItem.title}>
-                                                        <SidebarMenuSubButton
-                                                            asChild
-                                                            isActive={pathname === subItem.url}
-                                                            onMouseEnter={e =>
-                                                                gsap.to(e.currentTarget, {
-                                                                    x: 4,
-                                                                    duration: 0.2,
-                                                                })
-                                                            }
-                                                            onMouseLeave={e =>
-                                                                gsap.to(e.currentTarget, {
-                                                                    x: 0,
-                                                                    duration: 0.2,
-                                                                })
-                                                            }
+                                            {/* - Kita matikan border bawaan dengan 'border-l-0'
+      - pl-4 memberikan jarak kontainer ke kanan
+    */}
+                                            <SidebarMenuSub className="relative ml-4 pl-4 border-l-0 gap-0">
+                                                <div className="absolute left-0 top-0 bottom-3 w-px bg-accent-foreground/30 pointer-events-none" />
+
+                                                {item.items?.map(subItem => {
+                                                    return (
+                                                        <SidebarMenuSubItem
+                                                            key={subItem.title}
+                                                            className="relative flex items-center"
                                                         >
-                                                            <Link href={subItem.url}>
-                                                                <span>{subItem.title}</span>
-                                                            </Link>
-                                                        </SidebarMenuSubButton>
-                                                    </SidebarMenuSubItem>
-                                                ))}
+                                                            <div className="absolute -left-4 top-0 w-4 h-4.5 border-b border-l border-accent-foreground/20  rounded-bl-xl pointer-events-none" />
+
+                                                            <SidebarMenuSubButton
+                                                                asChild
+                                                                isActive={pathname === subItem.url}
+                                                                className="pl-2 w-full data-[active=true]:bg-sidebar-accent/50"
+                                                                onMouseEnter={e =>
+                                                                    gsap.to(e.currentTarget, {
+                                                                        x: 4,
+                                                                        duration: 0.2,
+                                                                    })
+                                                                }
+                                                                onMouseLeave={e =>
+                                                                    gsap.to(e.currentTarget, {
+                                                                        x: 0,
+                                                                        duration: 0.2,
+                                                                    })
+                                                                }
+                                                            >
+                                                                <Link href={subItem.url}>
+                                                                    <span>{subItem.title}</span>
+                                                                </Link>
+                                                            </SidebarMenuSubButton>
+                                                        </SidebarMenuSubItem>
+                                                    );
+                                                })}
                                             </SidebarMenuSub>
                                         </CollapsibleContent>
                                     </SidebarMenuItem>
@@ -280,6 +293,86 @@ export default function AppSidebar() {
                     </SidebarMenu>
                 </SidebarGroup>
             </SidebarContent>
+            {/* <SidebarContent className="overflow-x-hidden">
+                <SidebarGroup>
+                    <SidebarGroupLabel>Overview</SidebarGroupLabel>
+                    <SidebarMenu ref={itemsContainerRef}>
+                        {filteredItems.map(item => {
+                            const Icon = item.icon ? Icons[item.icon] : Icons.logo;
+                            return item?.items && item?.items?.length > 0 ? (
+                                <Collapsible
+                                    key={item.title}
+                                    asChild
+                                    defaultOpen={item.isActive}
+                                    className="group/collapsible"
+                                >
+                                    <SidebarMenuItem className="sidebar-item-trigger">
+                                        <CollapsibleTrigger asChild>
+                                            <SidebarMenuButton
+                                                tooltip={item.title}
+                                                isActive={pathname === item.url}
+                                                onMouseEnter={handleMouseEnter}
+                                                onMouseLeave={handleMouseLeave}
+                                            >
+                                                {item.icon && <Icon />}
+                                                <span>{item.title}</span>
+                                                <ChevronRight className="ml-auto transition-transform duration-200 group-data-[state=open]/collapsible:rotate-90" />
+                                            </SidebarMenuButton>
+                                        </CollapsibleTrigger>
+                                        <CollapsibleContent>
+                                            <SidebarMenuSub>
+                                                {item.items?.map(subItem => {
+                                                    const SubIcon = subItem.icon ? Icons[subItem.icon] : Icons.logo;
+                                                    return (
+                                                        <SidebarMenuSubItem key={subItem.title}>
+                                                            <SidebarMenuSubButton
+                                                                asChild
+                                                                isActive={pathname === subItem.url}
+                                                                onMouseEnter={e =>
+                                                                    gsap.to(e.currentTarget, {
+                                                                        x: 4,
+                                                                        duration: 0.2,
+                                                                    })
+                                                                }
+                                                                onMouseLeave={e =>
+                                                                    gsap.to(e.currentTarget, {
+                                                                        x: 0,
+                                                                        duration: 0.2,
+                                                                    })
+                                                                }
+                                                            >
+                                                                <Link href={subItem.url}>
+                                                                    <CornerDownRight className="text-muted-foreground! size-3" />
+                                                                    <span>{subItem.title}</span>
+                                                                </Link>
+                                                            </SidebarMenuSubButton>
+                                                        </SidebarMenuSubItem>
+                                                    );
+                                                })}
+                                            </SidebarMenuSub>
+                                        </CollapsibleContent>
+                                    </SidebarMenuItem>
+                                </Collapsible>
+                            ) : (
+                                <SidebarMenuItem key={item.title} className="sidebar-item-trigger">
+                                    <SidebarMenuButton
+                                        asChild
+                                        tooltip={item.title}
+                                        isActive={pathname === item.url}
+                                        onMouseEnter={handleMouseEnter}
+                                        onMouseLeave={handleMouseLeave}
+                                    >
+                                        <Link href={item.url}>
+                                            <Icon />
+                                            <span>{item.title}</span>
+                                        </Link>
+                                    </SidebarMenuButton>
+                                </SidebarMenuItem>
+                            );
+                        })}
+                    </SidebarMenu>
+                </SidebarGroup>
+            </SidebarContent> */}
             <SidebarFooter>
                 <SidebarMenu>
                     <SidebarMenuItem>
