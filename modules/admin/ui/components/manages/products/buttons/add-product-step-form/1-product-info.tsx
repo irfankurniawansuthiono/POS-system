@@ -29,10 +29,10 @@ export function ProductInfoForm({
     onNext: (data: ProductInfo) => void;
     defaultValues?: ProductInfo;
     categoriesData?: Category[];
-    file?: ObjectImageFile | undefined;
-    blobPreview?: ObjectImageBlob | null;
-    setFile: React.Dispatch<React.SetStateAction<ObjectImageFile | undefined>>;
-    setBlobPreview: React.Dispatch<React.SetStateAction<ObjectImageBlob | null>>;
+    file: ObjectImageFile[] | undefined;
+    blobPreview: ObjectImageBlob[] | null;
+    setFile: React.Dispatch<React.SetStateAction<ObjectImageFile[] | undefined>>;
+    setBlobPreview: React.Dispatch<React.SetStateAction<ObjectImageBlob[] | null>>;
 }) {
     const trpc = useTRPC();
     const queryClient = useQueryClient();
@@ -161,8 +161,8 @@ export function ProductInfoForm({
                                     className="h-75 w-75"
                                     imageKey="product"
                                     value={field.value}
-                                    file={file?.key === "product" ? file : undefined}
-                                    blobPreview={blobPreview?.key === "product" ? blobPreview : null}
+                                    file={file}
+                                    blobPreview={blobPreview}
                                     setFile={setFile}
                                     setBlobPreview={setBlobPreview}
                                     onRemove={() => form.setValue("imageUrl", "")}

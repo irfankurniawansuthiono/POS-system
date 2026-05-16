@@ -112,8 +112,8 @@ export default function AddProduct() {
     const trpc = useTRPC();
     const [combinated, setCombinated] = useState<{ name: string; values: string[] }[]>([]);
     const { data: categoriesData } = useQuery(trpc.category.get.queryOptions()) || [];
-    const [file, setFile] = useState<ObjectImageFile | undefined>();
-    const [blobPreview, setBlobPreview] = useState<ObjectImageBlob | null>(null);
+    const [file, setFile] = useState<ObjectImageFile[] | undefined>();
+    const [blobPreview, setBlobPreview] = useState<ObjectImageBlob[] | null>(null);
 
     return (
         <Dialog>
@@ -122,7 +122,7 @@ export default function AddProduct() {
             </DialogTrigger>
             <DialogContent
                 onInteractOutside={e => e.preventDefault()}
-                className="maxw-[90svw] sm:max-w-[80svw]! w-fit max-h-[90svh] overflow-y-auto"
+                className="maxw-[90svw] sm:max-w-[80svw]! w-full max-h-[90svh] overflow-y-auto"
             >
                 <DialogHeader>
                     <DialogTitle>Add Product</DialogTitle>

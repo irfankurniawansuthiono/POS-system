@@ -8,6 +8,7 @@ import { useTRPC } from "@/trpc/client";
 
 import { useQuery } from "@tanstack/react-query";
 import Image from "next/image";
+import VariantDetailPreview from "./button/variant-details-preview";
 
 export function CompleteStep({
     formData,
@@ -22,12 +23,13 @@ export function CompleteStep({
         generateVariants?: GenerateVariantAttribute;
         variantsInfo?: VariantsInfo;
     };
-    file?: ObjectImageFile | undefined;
-    blobPreview?: ObjectImageBlob | null;
+    file: ObjectImageFile[] | undefined;
+    blobPreview: ObjectImageBlob[] | null;
     onReset: () => void;
     categoriesData: Category[];
     onPrev: () => void;
 }) {
+    console.log(blobPreview);
     const trpc = useTRPC();
     const categoryText =
         formData.productInfo?.category
@@ -50,13 +52,16 @@ export function CompleteStep({
                                     <strong>Image</strong>
                                 </TableCell>
                                 <TableCell>
-                                    {file?.key === "product" && blobPreview?.key === "product" && (
+                                    {blobPreview && (
                                         <Image
-                                            src={blobPreview.url}
+                                            src={
+                                                blobPreview.find(blob => blob.key === "product")?.url ??
+                                                "https://placehold.co/400x400"
+                                            }
+                                            alt="product"
                                             width={400}
                                             height={400}
-                                            alt={formData.productInfo!.name}
-                                            className="w-16 h-16 object-cover rounded-md"
+                                            className="object-contain"
                                         />
                                     )}
                                 </TableCell>
@@ -99,36 +104,38 @@ export function CompleteStep({
                 <Table>
                     <TableHeader>
                         <TableRow>
-                            <TableHead>Label</TableHead>
-                            <TableHead>Value</TableHead>
+                            <TableHead>No.</TableHead>
+                            <TableHead>Variant</TableHead>
                             <TableHead>Image</TableHead>
                             <TableHead>Details</TableHead>
                         </TableRow>
                     </TableHeader>
                     <TableBody>
-                        {formData.variantsInfo?.variants.map(variant =>
-                            variant.attributes.map(
-                                (attr, index) => (
-                                    <TableRow key={index}>
-                                        <TableCell>{attr.name}</TableCell>
-                                        <TableCell>{attr.value}</TableCell>
-                                    </TableRow>
-                                ),
-                                file?.key === variant.sku && blobPreview?.key === variant.sku && (
-                                    <TableRow key={variant.sku}>
-                                        <TableCell colSpan={4}>
-                                            <Image
-                                                src={blobPreview.url}
-                                                width={400}
-                                                height={400}
-                                                alt={formData.productInfo!.name}
-                                                className="w-16 h-16 object-cover rounded-md"
-                                            />
-                                        </TableCell>
-                                    </TableRow>
-                                ),
-                            ),
-                        )}
+                        {formData.variantsInfo?.variants.map((variant, index) => (
+                            <TableRow key={variant.sku}>
+                                <TableCell>
+                                    <strong>{index + 1}</strong>
+                                </TableCell>
+                                <TableCell>{variant.displayName.split("-")[1]}</TableCell>
+                                <TableCell>
+                                    {blobPreview && (
+                                        <Image
+                                            src={
+                                                blobPreview.find(blob => blob.key === variant.displayName)?.url ??
+                                                "https://placehold.co/100x100"
+                                            }
+                                            alt="product"
+                                            width={100}
+                                            height={100}
+                                            className="object-contain"
+                                        />
+                                    )}
+                                </TableCell>
+                                <TableCell>
+                                    <VariantDetailPreview data={variant} />
+                                </TableCell>
+                            </TableRow>
+                        ))}
                     </TableBody>
                 </Table>
             </div>

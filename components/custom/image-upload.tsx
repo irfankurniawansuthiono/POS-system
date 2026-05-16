@@ -392,21 +392,16 @@ export interface ObjectImageBlob {
 }
 
 interface ObjectImageUploadProps {
-    /** Unique key untuk slot gambar ini (misal: "product", "variant-red", "variant-blue") */
     imageKey: string;
 
-    /** URL gambar yang sudah tersimpan di DB (dari value form) */
     value?: string;
 
-    /** State file & blob yang dikelola di parent */
-    file: ObjectImageFile | undefined;
-    blobPreview: ObjectImageBlob | null;
+    file: ObjectImageFile[] | undefined;
+    blobPreview: ObjectImageBlob[] | null;
 
-    /** Setter dari parent — komponen ini hanya memanipulasi entry yang key-nya cocok */
-    setFile: React.Dispatch<React.SetStateAction<ObjectImageFile | undefined>>;
-    setBlobPreview: React.Dispatch<React.SetStateAction<ObjectImageBlob | null>>;
+    setFile: React.Dispatch<React.SetStateAction<ObjectImageFile[] | undefined>>;
+    setBlobPreview: React.Dispatch<React.SetStateAction<ObjectImageBlob[] | null>>;
 
-    /** Dipanggil saat user menghapus gambar yang sudah tersimpan (value) */
     onRemove?: () => void;
 
     disabled?: boolean;
@@ -425,7 +420,8 @@ export function ObjectImageUpload({
     label,
     className,
 }: ObjectImageUploadProps) {
-    const displaySrc = blobPreview?.url ?? value ?? null;
+    const currentBlobPreview = blobPreview?.find(item => item.key === imageKey);
+    const displaySrc = value || currentBlobPreview?.url;
 
     const onDrop = useCallback(
         (acceptedFiles: File[]) => {
@@ -433,28 +429,54 @@ export function ObjectImageUpload({
 
             const selectedFile = acceptedFiles[0];
 
-            // Revoke old preview
-            if (blobPreview?.url) {
-                URL.revokeObjectURL(blobPreview.url);
+            // revoke old preview
+            if (currentBlobPreview?.url) {
+                URL.revokeObjectURL(currentBlobPreview.url);
             }
 
-            // Set file
-            setFile({ key: imageKey, file: selectedFile });
+            // update file array
+            setFile(prev => {
+                const filtered = prev?.filter(item => item.key !== imageKey) ?? [];
 
-            // set preview
+                return [
+                    ...filtered,
+                    {
+                        key: imageKey,
+                        file: selectedFile,
+                    },
+                ];
+            });
+
+            // create preview
             const previewUrl = URL.createObjectURL(selectedFile);
-            setBlobPreview({ key: imageKey, url: previewUrl });
+
+            setBlobPreview(prev => {
+                const filtered = prev?.filter(item => item.key !== imageKey) ?? [];
+
+                return [
+                    ...filtered,
+                    {
+                        key: imageKey,
+                        url: previewUrl,
+                    },
+                ];
+            });
         },
-        [imageKey, blobPreview, setFile, setBlobPreview],
+        [imageKey, currentBlobPreview, setFile, setBlobPreview],
     );
 
-    const handleRemove = (e: React.MouseEvent) => {
-        if (blobPreview?.url) {
-            URL.revokeObjectURL(blobPreview.url);
+    const handleRemove = () => {
+        if (currentBlobPreview?.url) {
+            URL.revokeObjectURL(currentBlobPreview.url);
         }
 
-        setFile(prev => (prev?.key === imageKey ? undefined : prev));
-        setBlobPreview(prev => (prev?.key === imageKey ? null : prev));
+        setFile(prev => prev?.filter(item => item.key !== imageKey));
+
+        setBlobPreview(prev => {
+            const filtered = prev?.filter(item => item.key !== imageKey);
+
+            return filtered && filtered.length > 0 ? filtered : null;
+        });
 
         if (value) {
             onRemove?.();
@@ -495,7 +517,7 @@ export function ObjectImageUpload({
                     <button
                         type="button"
                         onClick={(e: React.MouseEvent) => {
-                            handleRemove(e);
+                            handleRemove();
                         }}
                         disabled={disabled}
                         className={cn(

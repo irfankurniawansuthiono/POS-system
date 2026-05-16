@@ -43,10 +43,10 @@ export default function VariantInfoSheet({
     setBlobPreview,
 }: {
     productName: string;
-    file: ObjectImageFile | undefined;
-    blobPreview: ObjectImageBlob | null;
-    setFile: React.Dispatch<React.SetStateAction<ObjectImageFile | undefined>>;
-    setBlobPreview: React.Dispatch<React.SetStateAction<ObjectImageBlob | null>>;
+    file: ObjectImageFile[] | undefined;
+    blobPreview: ObjectImageBlob[] | null;
+    setFile: React.Dispatch<React.SetStateAction<ObjectImageFile[] | undefined>>;
+    setBlobPreview: React.Dispatch<React.SetStateAction<ObjectImageBlob[] | null>>;
     externalErrors?: {
         barcode?: string;
         sku?: string;
@@ -128,29 +128,50 @@ export default function VariantInfoSheet({
         form.setValue("displayName", `${productName} - ${Object.values(rowValues).join(", ")}`);
     }, [productName, rowValues, form]);
 
+    // 1. Ambil nilai margin secara terpisah agar dependency array lebih presisi
+    const profitMargins = pricingRulesWatch?.map(rule => rule.profitMargin) || [];
+
     useEffect(() => {
-        pricingRulesWatch?.forEach((rule, ruleIndex) => {
-            const profitMargin = rule.profitMargin ?? 0;
-            const basePrice = costPriceWatch + (costPriceWatch * profitMargin) / 100;
-            const priceWithPPN =
-                config?.isPpnEnabled && Number(config.ppn) > 0 ? basePrice * Number(config.ppn) + basePrice : basePrice;
+        pricingRulesFields.forEach((field, ruleIndex) => {
+            const costPrice = Number(costPriceWatch) || 0;
+            const profitMargin = Number(form.getValues(`pricingRules.${ruleIndex}.profitMargin`)) || 0;
+
+            // Gunakan fungsi hitung bawaan yang sudah kamu buat
+            const expectedPrice = calculateVariantPrice(costPrice, profitMargin);
             const currentPrice = form.getValues(`pricingRules.${ruleIndex}.price`);
-            if (currentPrice !== priceWithPPN) {
-                form.setValue(`pricingRules.${ruleIndex}.price`, priceWithPPN, {
+
+            // Pembulatan agar tidak muncul angka desimal infinity (JavaScript floating point bug)
+            const roundedExpectedPrice = Math.round(expectedPrice * 100) / 100;
+            const roundedCurrentPrice = Math.round(Number(currentPrice) * 100) / 100;
+
+            // Hanya set value jika nilainya benar-benar berubah secara matematis
+            if (roundedCurrentPrice !== roundedExpectedPrice) {
+                form.setValue(`pricingRules.${ruleIndex}.price`, roundedExpectedPrice, {
                     shouldDirty: false,
                     shouldTouch: false,
+                    shouldValidate: false, // mencegah rekursi validasi
                 });
             }
         });
-    }, [
-        costPriceWatch,
-        config?.isPpnEnabled,
-        config?.ppn,
-        form,
-        pricingRulesWatch,
-        // eslint-disable-next-line react-hooks/exhaustive-deps
-        pricingRulesWatch?.map(r => r.profitMargin).join(","),
-    ]);
+        // Gunakan stringified dari profitMargins dan costPriceWatch sebagai dependency utama
+        // agar useEffect tidak trigger berulang kali karena referensi objek array yang berubah
+    }, [costPriceWatch, JSON.stringify(profitMargins), config?.isPpnEnabled, config?.ppn]);
+    // useEffect(() => {
+    //     pricingRulesWatch?.forEach((rule, ruleIndex) => {
+    //         const profitMargin = rule.profitMargin ?? 0;
+    //         const costPrice = Number(costPriceWatch);
+    //         const basePrice = costPrice + costPrice * (profitMargin / 100);
+    //         const priceWithPPN =
+    //             config?.isPpnEnabled && Number(config.ppn) > 0 ? basePrice * Number(config.ppn) + basePrice : basePrice;
+    //         const currentPrice = form.getValues(`pricingRules.${ruleIndex}.price`);
+    //         if (currentPrice !== priceWithPPN) {
+    //             form.setValue(`pricingRules.${ruleIndex}.price`, priceWithPPN, {
+    //                 shouldDirty: false,
+    //                 shouldTouch: false,
+    //             });
+    //         }
+    //     });
+    // }, [costPriceWatch, config?.isPpnEnabled, config?.ppn, form, pricingRulesWatch]);
 
     useEffect(() => {
         pricingRulesWatch?.forEach((rule, ruleIndex) => {
@@ -170,7 +191,6 @@ export default function VariantInfoSheet({
         <Sheet
             open={open}
             onOpenChange={val => {
-                console.log("onOpenChange", val);
                 setOpen(val);
             }}
         >
@@ -274,7 +294,7 @@ export default function VariantInfoSheet({
                                         <InputGroupInput
                                             placeholder="Modal"
                                             {...field}
-                                            value={field.value && formatNumber(field.value)}
+                                            value={formatNumber(Number(field.value || 0))}
                                             onChange={e => field.onChange(parseNumber(e.target.value))}
                                         />
                                         <InputGroupAddon>
@@ -401,16 +421,8 @@ export default function VariantInfoSheet({
                                     className="h-75 w-75"
                                     imageKey={`${productName} - ${Object.values(rowValues).join(", ")}`}
                                     value={field.value}
-                                    file={
-                                        file?.key === `${productName} - ${Object.values(rowValues).join(", ")}`
-                                            ? file
-                                            : undefined
-                                    }
-                                    blobPreview={
-                                        blobPreview?.key === `${productName} - ${Object.values(rowValues).join(", ")}`
-                                            ? blobPreview
-                                            : null
-                                    }
+                                    file={file}
+                                    blobPreview={blobPreview}
                                     setFile={setFile}
                                     setBlobPreview={setBlobPreview}
                                     onRemove={() => form.setValue("imageUrl", "")}
@@ -423,6 +435,7 @@ export default function VariantInfoSheet({
                     <div>
                         <ButtonWithIcon
                             size="sm"
+                            variant={"outline"}
                             startIcon={<Plus />}
                             type="button"
                             onClick={() => {
@@ -486,10 +499,8 @@ export default function VariantInfoSheet({
                                     control={form.control}
                                     name={`pricingRules.${index}.profitMargin`}
                                     render={({ field, fieldState }) => (
-                                        <div className="w-full">
-                                            <Label htmlFor={`profitMargin-${index}`} className="mb-1">
-                                                Profit Margin (%)
-                                            </Label>
+                                        <Field className="w-full">
+                                            <FieldLabel htmlFor={`profitMargin-${index}`}>Profit Margin (%)</FieldLabel>
                                             <InputGroup>
                                                 <InputGroupInput
                                                     placeholder="Profit Margin (%)"
@@ -504,7 +515,7 @@ export default function VariantInfoSheet({
                                             {fieldState.error && (
                                                 <p className="text-sm text-red-500">{fieldState.error.message}</p>
                                             )}
-                                        </div>
+                                        </Field>
                                     )}
                                 />
                                 <Controller
@@ -521,19 +532,20 @@ export default function VariantInfoSheet({
                                                     disabled
                                                     placeholder="Price"
                                                     {...field}
-                                                    value={
-                                                        pricingRulesWatch?.[index]?.profitMargin &&
-                                                        costPriceWatch &&
-                                                        config!.ppn! &&
-                                                        config!.isPpnEnabled
-                                                            ? formatNumber(
-                                                                  calculateVariantPrice(
-                                                                      costPriceWatch,
-                                                                      pricingRulesWatch[index].profitMargin,
-                                                                  ),
-                                                              )
-                                                            : 0
-                                                    }
+                                                    value={formatNumber(Number(field.value || 0))}
+                                                    // value={
+                                                    //     pricingRulesWatch?.[index]?.profitMargin &&
+                                                    //     costPriceWatch &&
+                                                    //     config!.ppn! &&
+                                                    //     config!.isPpnEnabled
+                                                    //         ? formatNumber(
+                                                    //               calculateVariantPrice(
+                                                    //                   costPriceWatch,
+                                                    //                   pricingRulesWatch[index].profitMargin,
+                                                    //               ),
+                                                    //           )
+                                                    //         : 0
+                                                    // }
                                                     onChange={e => field.onChange(parseNumber(e.target.value))}
                                                 />
                                                 <InputGroupAddon>
@@ -556,7 +568,6 @@ export default function VariantInfoSheet({
                             </div>
                         ))}
                     </div>
-                    {/* field lainnya... */}
                 </div>
                 <SheetFooter>
                     <div className="flex justify-end">

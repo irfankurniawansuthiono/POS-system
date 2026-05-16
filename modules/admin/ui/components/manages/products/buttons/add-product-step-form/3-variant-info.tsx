@@ -26,10 +26,10 @@ export default function VariantInfo({
     setBlobPreview,
 }: {
     onNext: (data: VariantsInfo) => void;
-    file: ObjectImageFile | undefined;
-    blobPreview: ObjectImageBlob | null;
-    setFile: React.Dispatch<React.SetStateAction<ObjectImageFile | undefined>>;
-    setBlobPreview: React.Dispatch<React.SetStateAction<ObjectImageBlob | null>>;
+    file: ObjectImageFile[] | undefined;
+    blobPreview: ObjectImageBlob[] | null;
+    setFile: React.Dispatch<React.SetStateAction<ObjectImageFile[] | undefined>>;
+    setBlobPreview: React.Dispatch<React.SetStateAction<ObjectImageBlob[] | null>>;
     defaultValues?: VariantsInfo;
     formData: FormDataAddProduct;
     onPrev: () => void;
