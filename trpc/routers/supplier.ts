@@ -228,6 +228,22 @@ export const supplierRouter = createTRPCRouter({
 
             return { suppliers, meta, suppliersCity };
         }),
+    getById: withRole("superadmin", "admin")
+        .input(deleteSupplierSchema)
+        .query(async ({ ctx, input }) => {
+            const supplier = await ctx.db.supplier.findUnique({
+                where: {
+                    id: input.id,
+                },
+                select: {
+                    name: true,
+                },
+            });
+            if (!supplier) {
+                throw new Error("Brand not found");
+            }
+            return supplier;
+        }),
     create: withRole("superadmin", "admin")
         .input(addSupplierSchema)
         .mutation(async ({ input, ctx }) => {

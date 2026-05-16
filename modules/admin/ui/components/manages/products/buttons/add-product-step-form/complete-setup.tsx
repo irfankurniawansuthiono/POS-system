@@ -29,7 +29,6 @@ export function CompleteStep({
     categoriesData: Category[];
     onPrev: () => void;
 }) {
-    console.log(blobPreview);
     const trpc = useTRPC();
     const categoryText =
         formData.productInfo?.category
@@ -40,6 +39,7 @@ export function CompleteStep({
             .join(" > ") || "N/A";
 
     const { data: brand } = useQuery(trpc.brand.getById.queryOptions({ id: formData.productInfo?.brandId || "" }));
+
     return (
         <div className="space-y-4">
             <div className="rounded border bg-secondary w-full p-4 space-y-3 overflow-auto">

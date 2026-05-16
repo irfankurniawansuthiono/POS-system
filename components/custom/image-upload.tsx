@@ -513,15 +513,22 @@ export function ObjectImageUpload({
                     {/* Overlay on hover */}
                     <div className="absolute inset-0 bg-black/0 group-hover:bg-black/40 transition-all duration-300" />
 
-                    {/* Delete button */}
+                    {/* KUNCI PERBAIKAN 1: Bungkus input & dropzone terpisah, jangan jadikan button sebagai anak dropzone */}
+                    <div {...getRootProps()} className="absolute inset-0 cursor-pointer z-0">
+                        <input {...getInputProps()} />
+                    </div>
+
+                    {/* KUNCI PERBAIKAN 2: Pastikan button memiliki z-index lebih tinggi (z-10) dan stopPropagation */}
                     <button
                         type="button"
                         onClick={(e: React.MouseEvent) => {
+                            e.stopPropagation(); // Mencegah click lari ke dropzone
+                            e.preventDefault(); // Mencegah trigger bawaan browser
                             handleRemove();
                         }}
                         disabled={disabled}
                         className={cn(
-                            "absolute top-2 right-2 z-10",
+                            "absolute top-2 right-2 z-10", // Tetap di atas layer dropzone
                             "flex items-center justify-center",
                             "size-8 rounded-full",
                             "bg-destructive/90 text-destructive-foreground",
@@ -534,10 +541,6 @@ export function ObjectImageUpload({
                     >
                         <X className="size-4" />
                     </button>
-
-                    <div {...getRootProps()} className="absolute inset-0 cursor-pointer z-0">
-                        <input {...getInputProps()} />
-                    </div>
                 </div>
             </div>
         );

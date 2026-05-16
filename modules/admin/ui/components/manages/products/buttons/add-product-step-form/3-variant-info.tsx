@@ -4,13 +4,12 @@ import { Button } from "@/components/ui/button";
 import { Table, TableBody, TableCell, TableFooter, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import type { VariantInfo, VariantsInfo } from "@/lib/query-schema/product-schema";
 import { flexRender, getCoreRowModel, useReactTable, type ColumnDef } from "@tanstack/react-table";
-import { Check, Minus } from "lucide-react";
-import { useCallback, useMemo } from "react";
+import { Check, Minus, Settings } from "lucide-react";
+import { useCallback, useMemo, useState } from "react";
 import { useForm, useWatch } from "react-hook-form";
 import type { FormDataAddProduct } from ".";
 import VariantDeleteGenerated from "./button/variant-delete-generated";
 import VariantInfoSheet from "./button/variant-info-sheet";
-
 type CombinationRow = { [key: string]: string | string[] };
 
 export default function VariantInfo({
@@ -40,6 +39,9 @@ export default function VariantInfo({
         defaultValues: { variants: defaultValues?.variants || [] },
         mode: "onChange",
     });
+
+    // 🌟 Tambahkan state untuk mengontrol Variant mana yang sedang dibuka di Sheet
+    const [activeVariantIndex, setActiveVariantIndex] = useState<number | null>(null);
 
     const watchedVariants = useWatch({ control: form.control, name: "variants" });
     const handleVariantSave = useCallback(
@@ -76,6 +78,7 @@ export default function VariantInfo({
     );
 
     const variantErrors = form.formState.errors.variants;
+    // 🌟 Sekarang useMemo columns menjadi bersih karena TIDAK BUTUH lagi state gambar!
     const columns = useMemo<ColumnDef<CombinationRow>[]>(() => {
         if (!combinated || combinated.length === 0) return [];
 
@@ -83,7 +86,8 @@ export default function VariantInfo({
             id: key,
             accessorKey: key,
             header: key,
-            cell: ({ row }: { row: { getValue: (key: string) => unknown } }) => {
+            /*eslint-disable-next-line @typescript-eslint/no-explicit-any */
+            cell: ({ row }: any) => {
                 const value = row.getValue(key);
                 return Array.isArray(value) ? value.join(", ") : String(value ?? "");
             },
@@ -94,16 +98,13 @@ export default function VariantInfo({
             header: "Status",
             cell: ({ row }) => {
                 const isManaged = !!watchedVariants?.[row.index];
-
                 return isManaged ? (
                     <div className="flex items-center gap-2 text-green-600">
-                        <Check className="size-4" />
-                        <span className="text-sm">Managed</span>
+                        <Check className="size-4" /> <span className="text-sm">Managed</span>
                     </div>
                 ) : (
                     <div className="flex items-center gap-2 text-muted-foreground">
-                        <Minus className="size-4" />
-                        <span className="text-sm">Not managed</span>
+                        <Minus className="size-4" /> <span className="text-sm">Not managed</span>
                     </div>
                 );
             },
@@ -113,33 +114,19 @@ export default function VariantInfo({
             id: "actions",
             header: "Actions",
             cell: ({ row }) => {
-                const rowValues = Object.keys(combinated[0]).reduce(
-                    (acc, key) => {
-                        acc[key] = row.getValue(key);
-                        return acc;
-                    },
-                    {} as Record<string, unknown>,
-                );
-
                 return (
                     <div className="flex items-center gap-2">
-                        <VariantInfoSheet
-                            file={file}
-                            setFile={setFile}
-                            blobPreview={blobPreview}
-                            setBlobPreview={setBlobPreview}
-                            productName={formData.productInfo?.name || ""}
-                            index={row.index}
-                            defaultValues={watchedVariants?.[row.index]}
-                            rowValues={rowValues}
-                            onSave={handleVariantSave}
-                            externalErrors={{
-                                barcode: variantErrors?.[row.index]?.barcode?.message,
-                                sku: variantErrors?.[row.index]?.sku?.message,
-                            }}
-                        />
+                        <Button
+                            type="button"
+                            variant="outline"
+                            size="sm"
+                            onClick={() => setActiveVariantIndex(row.index)}
+                        >
+                            <Settings className="mr-2 size-4" /> Manage
+                        </Button>
+
                         <VariantDeleteGenerated
-                            rowValues={rowValues}
+                            rowValues={row.original}
                             onConfirm={() => {
                                 const newCombinated = [...combinated];
                                 newCombinated.splice(row.index, 1);
@@ -152,7 +139,11 @@ export default function VariantInfo({
         };
 
         return [...dynamicCols, statusManageCols, actionCol];
-    }, [combinated, handleVariantSave, formData, setCombinated, watchedVariants, variantErrors]);
+    }, [combinated, watchedVariants, setCombinated]); // <-- Dependency array sangat ringkas dan stabil!
+
+    // 🌟 Tambahkan deklarasi ini agar activeRowValues terdefinisi dengan benar
+    const activeRowValues =
+        activeVariantIndex !== null ? (combinated[activeVariantIndex] as Record<string, unknown>) : null;
 
     const table = useReactTable({
         data: combinated as CombinationRow[],
@@ -206,7 +197,26 @@ export default function VariantInfo({
                     </TableRow>
                 </TableFooter>
             </Table>
-
+            {/* 🌟 LETAKKAN SHEET DI LUAR TABEL SECARA KONDISIONAL 🌟 */}
+            {activeVariantIndex !== null && activeRowValues && (
+                <VariantInfoSheet
+                    isOpen={activeVariantIndex !== null}
+                    onClose={() => setActiveVariantIndex(null)}
+                    file={file}
+                    setFile={setFile}
+                    blobPreview={blobPreview}
+                    setBlobPreview={setBlobPreview}
+                    productName={formData.productInfo?.name || ""}
+                    index={activeVariantIndex}
+                    defaultValues={watchedVariants?.[activeVariantIndex]}
+                    rowValues={activeRowValues}
+                    onSave={handleVariantSave}
+                    externalErrors={{
+                        barcode: variantErrors?.[activeVariantIndex]?.barcode?.message,
+                        sku: variantErrors?.[activeVariantIndex]?.sku?.message,
+                    }}
+                />
+            )}
             <div className="flex justify-end gap-2">
                 <Button type="button" variant="secondary" onClick={onPrev}>
                     Previous

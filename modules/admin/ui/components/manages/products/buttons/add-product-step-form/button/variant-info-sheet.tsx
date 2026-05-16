@@ -37,12 +37,16 @@ export default function VariantInfoSheet({
     onSave,
     externalErrors,
     productName,
+    isOpen, // 🌟 Terima dari props
+    onClose, // 🌟 Terima dari props
     file,
     blobPreview,
     setFile,
     setBlobPreview,
 }: {
     productName: string;
+    isOpen: boolean;
+    onClose: () => void;
     file: ObjectImageFile[] | undefined;
     blobPreview: ObjectImageBlob[] | null;
     setFile: React.Dispatch<React.SetStateAction<ObjectImageFile[] | undefined>>;
@@ -56,12 +60,14 @@ export default function VariantInfoSheet({
     defaultValues?: VariantInfo;
     onSave: (index: number, data: VariantInfo) => Promise<boolean>;
 }) {
-    const { data: config } = useAppConfig();
     const [open, setOpen] = useState(false);
+    const { data: config } = useAppConfig();
     const queryClient = useQueryClient();
     const trpc = useTRPC();
+
     const form = useForm<VariantInfo>({
         resolver: zodResolver(VariantInfoSchema),
+        shouldFocusError: true,
         defaultValues: defaultValues ?? {
             key: String(index),
             supplierId: "",
@@ -85,14 +91,18 @@ export default function VariantInfoSheet({
             ],
         },
     });
-    function calculateVariantPrice(costPrice: number, profitMargin: number) {
-        const basePrice = costPrice + (costPrice * profitMargin) / 100;
-        return config?.isPpnEnabled && Number(config.ppn) > 0 ? basePrice * Number(config.ppn) + basePrice : basePrice;
-    }
+    // external error form will focus
+    useEffect(() => {
+        if (externalErrors) {
+            form.setError("barcode", { message: externalErrors.barcode });
+            form.setError("sku", { message: externalErrors.sku });
+        }
+    }, [externalErrors, form]);
+
     const handleSave = form.handleSubmit(async data => {
         const success = await onSave(index, data);
         if (success) {
-            setOpen(false); // ← hanya tutup jika berhasil
+            onClose(); // ← hanya tutup jika berhasil
         }
     });
 
@@ -132,6 +142,12 @@ export default function VariantInfoSheet({
     const profitMargins = pricingRulesWatch?.map(rule => rule.profitMargin) || [];
 
     useEffect(() => {
+        function calculateVariantPrice(costPrice: number, profitMargin: number) {
+            const basePrice = costPrice + (costPrice * profitMargin) / 100;
+            return config?.isPpnEnabled && Number(config.ppn) > 0
+                ? basePrice * Number(config.ppn) + basePrice
+                : basePrice;
+        }
         pricingRulesFields.forEach((field, ruleIndex) => {
             const costPrice = Number(costPriceWatch) || 0;
             const profitMargin = Number(form.getValues(`pricingRules.${ruleIndex}.profitMargin`)) || 0;
@@ -153,25 +169,7 @@ export default function VariantInfoSheet({
                 });
             }
         });
-        // Gunakan stringified dari profitMargins dan costPriceWatch sebagai dependency utama
-        // agar useEffect tidak trigger berulang kali karena referensi objek array yang berubah
-    }, [costPriceWatch, JSON.stringify(profitMargins), config?.isPpnEnabled, config?.ppn]);
-    // useEffect(() => {
-    //     pricingRulesWatch?.forEach((rule, ruleIndex) => {
-    //         const profitMargin = rule.profitMargin ?? 0;
-    //         const costPrice = Number(costPriceWatch);
-    //         const basePrice = costPrice + costPrice * (profitMargin / 100);
-    //         const priceWithPPN =
-    //             config?.isPpnEnabled && Number(config.ppn) > 0 ? basePrice * Number(config.ppn) + basePrice : basePrice;
-    //         const currentPrice = form.getValues(`pricingRules.${ruleIndex}.price`);
-    //         if (currentPrice !== priceWithPPN) {
-    //             form.setValue(`pricingRules.${ruleIndex}.price`, priceWithPPN, {
-    //                 shouldDirty: false,
-    //                 shouldTouch: false,
-    //             });
-    //         }
-    //     });
-    // }, [costPriceWatch, config?.isPpnEnabled, config?.ppn, form, pricingRulesWatch]);
+    }, [costPriceWatch, JSON.stringify(profitMargins), config?.isPpnEnabled, config?.ppn, form, pricingRulesFields]);
 
     useEffect(() => {
         pricingRulesWatch?.forEach((rule, ruleIndex) => {
@@ -179,7 +177,6 @@ export default function VariantInfoSheet({
                 const nextMinQty = pricingRulesWatch[ruleIndex + 1]?.minQty ?? 1;
                 const expectedMaxQty = Math.max(0, nextMinQty - 1);
 
-                // hanya setValue jika nilainya memang berbeda
                 if (rule.maxQty !== expectedMaxQty) {
                     form.setValue(`pricingRules.${ruleIndex}.maxQty`, expectedMaxQty);
                 }
@@ -188,12 +185,7 @@ export default function VariantInfoSheet({
     }, [form, pricingRulesFields, pricingRulesWatch]);
 
     return (
-        <Sheet
-            open={open}
-            onOpenChange={val => {
-                setOpen(val);
-            }}
-        >
+        <Sheet open={isOpen} onOpenChange={open => !open && onClose()}>
             <SheetTrigger asChild>
                 <ButtonWithIcon startIcon={<Settings />} variant="outline" size="sm">
                     Manage
@@ -201,22 +193,13 @@ export default function VariantInfoSheet({
             </SheetTrigger>
             <SheetContent
                 className="max-w-3xl overflow-y-auto"
-                onInteractOutside={e => {
-                    console.log("onInteractOutside", e.type, e.target);
-                    e.preventDefault();
-                }}
+                // KUNCI PERBAIKAN 3: Cegah penutupan dari interaksi luar manapun (termasuk dialog OS)
+                onInteractOutside={e => e.preventDefault()}
+                onPointerDownOutside={e => e.preventDefault()}
                 onFocusOutside={e => {
-                    console.log("onFocusOutside", e.type, e.target);
                     e.preventDefault();
                 }}
-                onPointerDownOutside={e => {
-                    console.log("onPointerDownOutside", e.type, e.target);
-                    e.preventDefault();
-                }}
-                onEscapeKeyDown={e => {
-                    console.log("onEscapeKeyDown");
-                    e.preventDefault();
-                }}
+                onEscapeKeyDown={e => e.preventDefault()}
             >
                 <SheetHeader>
                     <SheetTitle>{productName}</SheetTitle>

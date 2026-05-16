@@ -10,11 +10,31 @@ import {
 } from "@/components/ui/sheet";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import type { VariantInfo } from "@/lib/query-schema/product-schema";
+import { useTRPC } from "@/trpc/client";
+import { useQuery } from "@tanstack/react-query";
 import Image from "next/image";
 import { useState } from "react";
 
 export default function VariantDetailPreview({ data }: { data: VariantInfo }) {
     const [isOpen, setIsOpen] = useState(false);
+    const trpc = useTRPC();
+    const { data: supplier1 } = useQuery(
+        trpc.supplier.getById.queryOptions(
+            { id: data.supplierId },
+            {
+                enabled: !!data.supplierId,
+            },
+        ),
+    );
+
+    const { data: supplier2 } = useQuery(
+        trpc.supplier.getById.queryOptions(
+            { id: data.supplierId2 as string },
+            {
+                enabled: !!data.supplierId2,
+            },
+        ),
+    );
 
     return (
         <Sheet open={isOpen} onOpenChange={setIsOpen}>
@@ -28,32 +48,26 @@ export default function VariantDetailPreview({ data }: { data: VariantInfo }) {
                     <SheetDescription>Variant detail information</SheetDescription>
                 </SheetHeader>
 
-                <div className="mt-6">
+                <div className="px-2">
                     <Table className="w-full border-collapse text-sm">
                         <TableBody>
                             <TableRow className="border-b">
-                                <TableCell className="py-3 pr-4 font-medium text-muted-foreground w-[140px]">
-                                    Key
-                                </TableCell>
+                                <TableCell className="py-3 pr-4 font-medium text-muted-foreground w-35">Key</TableCell>
                                 <TableCell className="py-3 break-all">{data.key}</TableCell>
                             </TableRow>
 
                             <TableRow className="border-b">
                                 <TableCell className="py-3 pr-4 font-medium text-muted-foreground">
-                                    Supplier ID
+                                    Supplier 1
                                 </TableCell>
-                                <TableCell className="py-3">{data.supplierId}</TableCell>
+                                <TableCell className="py-3">{supplier1?.name ?? "-"}</TableCell>
                             </TableRow>
-
-                            {data.supplierId2 && (
-                                <TableRow className="border-b">
-                                    <TableCell className="py-3 pr-4 font-medium text-muted-foreground">
-                                        Supplier ID 2
-                                    </TableCell>
-                                    <TableCell className="py-3">{data.supplierId2}</TableCell>
-                                </TableRow>
-                            )}
-
+                            <TableRow>
+                                <TableCell className="py-3 pr-4 font-medium text-muted-foreground">
+                                    Supplier 2
+                                </TableCell>
+                                <TableCell className="py-3">{supplier2?.name ?? "-"}</TableCell>
+                            </TableRow>
                             <TableRow className="border-b">
                                 <TableCell className="py-3 pr-4 font-medium text-muted-foreground">Stock</TableCell>
                                 <TableCell className="py-3">{data.stock}</TableCell>
@@ -117,7 +131,7 @@ export default function VariantDetailPreview({ data }: { data: VariantInfo }) {
                                                         <TableRow key={index}>
                                                             <TableCell>{rule.minQty}</TableCell>
 
-                                                            <TableCell>{rule.maxQty}</TableCell>
+                                                            <TableCell>{rule.maxQty ?? "∞"} </TableCell>
 
                                                             <TableCell>
                                                                 Rp {rule.price.toLocaleString("id-ID")}
