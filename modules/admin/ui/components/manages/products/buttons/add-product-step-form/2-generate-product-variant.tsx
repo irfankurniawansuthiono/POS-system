@@ -49,6 +49,7 @@ export function GenerateProductVariantsForm({
     const handleAddAttribute = () => {
         append({ name: "", values: [""] });
     };
+
     const handleRemoveAttribute = (index: number) => {
         setIsDeleting(true);
         setTimeout(() => {
@@ -64,6 +65,10 @@ export function GenerateProductVariantsForm({
             setOpenConfirmation(true);
         })();
     };
+
+    // Error duplikat nama attribute ada di root level array
+    const attributeRootError = form.formState.errors.attributes?.root?.message;
+
     return (
         <div className="space-y-4">
             <div className="flex justify-start">
@@ -71,55 +76,90 @@ export function GenerateProductVariantsForm({
                     Add Variant
                 </ButtonWithIcon>
             </div>
-            <div className="max-h-75 overflow-y-auto">
-                {attributeFields.map((attr, index) => (
-                    <div
-                        key={attr.id}
-                        className="border rounded-md p-2 flex flex-col gap-4"
-                        data-invalid={!attr.name || !attr.values}
-                    >
-                        <Label>Attribute {index + 1}</Label>
-                        <div className="space-y-2 flex gap-2">
-                            <Controller
-                                name={`attributes.${index}.name`}
-                                control={form.control}
-                                render={({ field }) => (
-                                    <Input
-                                        placeholder={"e.g. Color, Size, Material"}
-                                        {...field}
-                                        aria-label={`Attribute ${index + 1} Name`}
+
+            {/* Error duplikat nama attribute */}
+            {attributeRootError && <p className="text-sm text-destructive">{attributeRootError}</p>}
+
+            <div className="max-h-75 overflow-y-auto space-y-2">
+                {attributeFields.map((attr, index) => {
+                    const nameError = form.formState.errors.attributes?.[index]?.name?.message;
+                    const valuesError =
+                        form.formState.errors.attributes?.[index]?.values?.message ??
+                        (form.formState.errors.attributes?.[index]?.values as { message?: string } | undefined)
+                            ?.message;
+
+                    return (
+                        <div
+                            key={attr.id}
+                            className={cn(
+                                "border rounded-md p-3 flex flex-col gap-3 transition-colors",
+                                (nameError || valuesError) && "border-destructive bg-destructive/5",
+                            )}
+                        >
+                            <Label>Attribute {index + 1}</Label>
+                            <div className="flex gap-2">
+                                {/* Nama attribute */}
+                                <div className="flex-1 space-y-1">
+                                    <Controller
+                                        name={`attributes.${index}.name`}
+                                        control={form.control}
+                                        render={({ field }) => (
+                                            <Input
+                                                placeholder="e.g. Color, Size, Material"
+                                                {...field}
+                                                aria-label={`Attribute ${index + 1} Name`}
+                                                className={cn(
+                                                    nameError && "border-destructive focus-visible:ring-destructive",
+                                                )}
+                                            />
+                                        )}
                                     />
-                                )}
-                            />
-                            <Controller
-                                name={`attributes.${index}.values`}
-                                control={form.control}
-                                render={({ field }) => (
-                                    <Input
-                                        {...field}
-                                        placeholder="e.g. Red, Green, Blue (comma separated)"
-                                        aria-label={`Attribute ${index + 1} Values`}
-                                        onChange={e => {
-                                            const values = e.target.value.split(",").map(v => v.trim());
-                                            field.onChange(values);
-                                        }}
-                                        value={field.value}
+                                    {nameError && <p className="text-xs text-destructive">{nameError}</p>}
+                                </div>
+
+                                {/* Values attribute */}
+                                <div className="flex-1 space-y-1">
+                                    <Controller
+                                        name={`attributes.${index}.values`}
+                                        control={form.control}
+                                        render={({ field }) => (
+                                            <Input
+                                                {...field}
+                                                placeholder="e.g. Red, Green, Blue (comma separated)"
+                                                aria-label={`Attribute ${index + 1} Values`}
+                                                onChange={e => {
+                                                    const values = e.target.value.split(",").map(v => v.trim());
+                                                    field.onChange(values);
+                                                }}
+                                                value={
+                                                    Array.isArray(field.value) ? field.value.join(", ") : field.value
+                                                }
+                                                className={cn(
+                                                    valuesError && "border-destructive focus-visible:ring-destructive",
+                                                )}
+                                            />
+                                        )}
                                     />
-                                )}
-                            />
-                            <Button
-                                size={"icon"}
-                                disabled={isDeleting || attributeFields.length === 1}
-                                type="button"
-                                onClick={() => index !== 0 && handleRemoveAttribute(index)}
-                                variant="destructive"
-                            >
-                                <Trash className={cn("h-4 w-4", isDeleting && "animate-pulse")} />
-                            </Button>
+                                    {valuesError && <p className="text-xs text-destructive">{valuesError}</p>}
+                                </div>
+
+                                {/* Hapus attribute */}
+                                <Button
+                                    size="icon"
+                                    disabled={isDeleting || attributeFields.length === 1}
+                                    type="button"
+                                    onClick={() => index !== 0 && handleRemoveAttribute(index)}
+                                    variant="destructive"
+                                    className="shrink-0"
+                                >
+                                    <Trash className={cn("h-4 w-4", isDeleting && "animate-pulse")} />
+                                </Button>
+                            </div>
                         </div>
-                    </div>
-                ))}
+                    );
+                })}
             </div>
+
             <Dialog open={openConfirmation} onOpenChange={setOpenConfirmation}>
                 <DialogContent
                     className="max-w-[80svw] max-h-[90svh] overflow-y-auto"
@@ -169,6 +209,7 @@ export function GenerateProductVariantsForm({
                     </DialogFooter>
                 </DialogContent>
             </Dialog>
+
             <div className="flex justify-end gap-2">
                 <Button type="button" variant="secondary" onClick={onPrev}>
                     Previous

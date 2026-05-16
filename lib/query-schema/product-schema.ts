@@ -5,20 +5,39 @@ export const productInfoSchema = z.object({
     brandId: z.string().min(1, "Brand is required"),
     category: z.string().array().min(1, "Category is required"),
     isActive: z.boolean(),
+    imageUrl: z.string().optional(),
 });
 
 export type ProductInfo = z.infer<typeof productInfoSchema>;
 
 export const GenerateVariantAttributeSchema = z.object({
-    attributes: z.array(
-        z.object({
-            name: z.string().min(1, "Attribute name is required"),
-            values: z.array(z.string().min(1, "Attribute value cannot be empty")),
-        }),
-    ),
+    attributes: z
+        .array(
+            z.object({
+                name: z.string().min(1, "Attribute name is required"),
+                values: z
+                    .array(z.string().min(1))
+                    .min(1, "At least one value is required")
+                    .refine(values => new Set(values).size === values.length, {
+                        message: "Duplicate values are not allowed",
+                    }),
+            }),
+        )
+        .min(1)
+        .refine(
+            attributes => {
+                const names = attributes.map(a => a.name.toLowerCase().trim());
+                return new Set(names).size === names.length;
+            },
+            {
+                message: "Duplicate attribute names are not allowed",
+                path: ["attributes"],
+            },
+        ),
 });
 
 export type GenerateVariantAttribute = z.infer<typeof GenerateVariantAttributeSchema>;
+
 export const pricingRules = z
     .array(
         z.object({
@@ -75,9 +94,37 @@ export const VariantInfoSchema = z.object({
         }),
     ),
     pricingRules: pricingRules,
+    imageUrl: z.string().optional(),
 });
 export const VariantsInfoSchema = z.object({
-    variants: z.array(VariantInfoSchema),
+    variants: z.array(VariantInfoSchema).superRefine((variants, ctx) => {
+        const seenBarcodes = new Map<string, number>();
+        const seenSkus = new Map<string, number>();
+
+        variants.forEach((variant, index) => {
+            // Check barcode duplicates
+            if (seenBarcodes.has(variant.barcode)) {
+                ctx.addIssue({
+                    code: z.ZodIssueCode.custom,
+                    message: `Barcode "${variant.barcode}" already used`,
+                    path: [index, "barcode"],
+                });
+            } else {
+                seenBarcodes.set(variant.barcode, index);
+            }
+
+            // Check SKU duplicates
+            if (seenSkus.has(variant.sku)) {
+                ctx.addIssue({
+                    code: z.ZodIssueCode.custom,
+                    message: `SKU "${variant.sku}" already used`,
+                    path: [index, "sku"],
+                });
+            } else {
+                seenSkus.set(variant.sku, index);
+            }
+        });
+    }),
 });
 export type VariantsInfo = z.infer<typeof VariantsInfoSchema>;
 export type VariantInfo = z.infer<typeof VariantInfoSchema>;

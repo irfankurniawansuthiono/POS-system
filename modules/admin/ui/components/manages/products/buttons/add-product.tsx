@@ -21,6 +21,7 @@ import React, { useState } from "react";
 
 // form
 import type { Category } from "@/app/generated/prisma";
+import type { ObjectImageBlob, ObjectImageFile } from "@/components/custom/image-upload";
 import type { FormDataAddProduct, ProductAddFormId } from "./add-product-step-form";
 import { ProductInfoForm } from "./add-product-step-form/1-product-info";
 import { GenerateProductVariantsForm } from "./add-product-step-form/2-generate-product-variant";
@@ -111,6 +112,8 @@ export default function AddProduct() {
     const trpc = useTRPC();
     const [combinated, setCombinated] = useState<{ name: string; values: string[] }[]>([]);
     const { data: categoriesData } = useQuery(trpc.category.get.queryOptions()) || [];
+    const [file, setFile] = useState<ObjectImageFile | undefined>();
+    const [blobPreview, setBlobPreview] = useState<ObjectImageBlob | null>(null);
 
     return (
         <Dialog>
@@ -119,7 +122,7 @@ export default function AddProduct() {
             </DialogTrigger>
             <DialogContent
                 onInteractOutside={e => e.preventDefault()}
-                className="max-w-[90svw] sm:max-w-[80svw]! w-fit max-h-[90svh] overflow-y-auto"
+                className="maxw-[90svw] sm:max-w-[80svw]! w-fit max-h-[90svh] overflow-y-auto"
             >
                 <DialogHeader>
                     <DialogTitle>Add Product</DialogTitle>
@@ -182,6 +185,10 @@ export default function AddProduct() {
                                     {stepper.flow.switch({
                                         productInfo: () => (
                                             <ProductInfoForm
+                                                file={file}
+                                                setFile={setFile}
+                                                blobPreview={blobPreview}
+                                                setBlobPreview={setBlobPreview}
                                                 categoriesData={categoriesData as Category[]}
                                                 defaultValues={formData.productInfo}
                                                 onNext={data => {
@@ -212,6 +219,10 @@ export default function AddProduct() {
                                         ),
                                         variantInfo: () => (
                                             <VariantInfo
+                                                file={file}
+                                                blobPreview={blobPreview}
+                                                setFile={setFile}
+                                                setBlobPreview={setBlobPreview}
                                                 setCombinated={setCombinated}
                                                 combinated={combinated}
                                                 formData={formData}
@@ -230,6 +241,8 @@ export default function AddProduct() {
                                         ),
                                         complete: () => (
                                             <CompleteStep
+                                                blobPreview={blobPreview}
+                                                file={file}
                                                 categoriesData={categoriesData as Category[]}
                                                 formData={formData}
                                                 onReset={() => {

@@ -77,7 +77,6 @@ export default function AddBrand() {
 
     const { uploadImage, isUploading } = useUploadImage({
         pathName: "brands",
-
         onSuccess: url => {
             form.setValue("logoUrl", url);
         },

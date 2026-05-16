@@ -1,4 +1,5 @@
 import { Heading } from "@/components/custom/heading";
+import type { ObjectImageBlob, ObjectImageFile } from "@/components/custom/image-upload";
 import { Button } from "@/components/ui/button";
 import { Table, TableBody, TableCell, TableFooter, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import type { VariantInfo, VariantsInfo } from "@/lib/query-schema/product-schema";
@@ -19,8 +20,16 @@ export default function VariantInfo({
     combinated,
     setCombinated,
     formData,
+    file,
+    blobPreview,
+    setFile,
+    setBlobPreview,
 }: {
     onNext: (data: VariantsInfo) => void;
+    file: ObjectImageFile | undefined;
+    blobPreview: ObjectImageBlob | null;
+    setFile: React.Dispatch<React.SetStateAction<ObjectImageFile | undefined>>;
+    setBlobPreview: React.Dispatch<React.SetStateAction<ObjectImageBlob | null>>;
     defaultValues?: VariantsInfo;
     formData: FormDataAddProduct;
     onPrev: () => void;
@@ -29,18 +38,44 @@ export default function VariantInfo({
 }) {
     const form = useForm<VariantsInfo>({
         defaultValues: { variants: defaultValues?.variants || [] },
+        mode: "onChange",
     });
 
     const watchedVariants = useWatch({ control: form.control, name: "variants" });
-
     const handleVariantSave = useCallback(
-        async (index: number, data: VariantInfo) => {
-            form.setValue(`variants.${index}`, data);
-        },
+        async (index: number, data: VariantInfo): Promise<boolean> => {
+            const currentVariants = form.getValues("variants") || [];
 
+            const duplicateBarcode = currentVariants.findIndex((v, i) => i !== index && v?.barcode === data.barcode);
+            const duplicateSku = currentVariants.findIndex((v, i) => i !== index && v?.sku === data.sku);
+
+            if (duplicateBarcode !== -1 || duplicateSku !== -1) {
+                if (duplicateBarcode !== -1) {
+                    form.setError(`variants.${index}.barcode`, {
+                        type: "manual",
+                        message: `Barcode "${data.barcode}" have been used by another variant`,
+                    });
+                }
+                if (duplicateSku !== -1) {
+                    form.setError(`variants.${index}.sku`, {
+                        type: "manual",
+                        message: `SKU "${data.sku}" have been used by another variant`,
+                    });
+                }
+                return false;
+            }
+
+            form.clearErrors(`variants.${index}.barcode`);
+            form.clearErrors(`variants.${index}.sku`);
+
+            form.setValue(`variants.${index}`, data);
+            await form.trigger("variants");
+            return true;
+        },
         [form],
     );
 
+    const variantErrors = form.formState.errors.variants;
     const columns = useMemo<ColumnDef<CombinationRow>[]>(() => {
         if (!combinated || combinated.length === 0) return [];
 
@@ -89,11 +124,19 @@ export default function VariantInfo({
                 return (
                     <div className="flex items-center gap-2">
                         <VariantInfoSheet
+                            file={file}
+                            setFile={setFile}
+                            blobPreview={blobPreview}
+                            setBlobPreview={setBlobPreview}
                             productName={formData.productInfo?.name || ""}
                             index={row.index}
                             defaultValues={watchedVariants?.[row.index]}
                             rowValues={rowValues}
                             onSave={handleVariantSave}
+                            externalErrors={{
+                                barcode: variantErrors?.[row.index]?.barcode?.message,
+                                sku: variantErrors?.[row.index]?.sku?.message,
+                            }}
                         />
                         <VariantDeleteGenerated
                             rowValues={rowValues}
@@ -109,7 +152,7 @@ export default function VariantInfo({
         };
 
         return [...dynamicCols, statusManageCols, actionCol];
-    }, [combinated, handleVariantSave, formData, setCombinated, watchedVariants]);
+    }, [combinated, handleVariantSave, formData, setCombinated, watchedVariants, variantErrors]);
 
     const table = useReactTable({
         data: combinated as CombinationRow[],
@@ -168,7 +211,17 @@ export default function VariantInfo({
                 <Button type="button" variant="secondary" onClick={onPrev}>
                     Previous
                 </Button>
-                <Button type="button" disabled={!form.formState.isValid} onClick={handleSubmit}>
+                <Button
+                    type="button"
+                    disabled={
+                        !form.formState.isValid ||
+                        form.formState.isSubmitting ||
+                        combinated.length === 0 ||
+                        watchedVariants?.length !== combinated.length ||
+                        watchedVariants?.some(v => !v)
+                    }
+                    onClick={handleSubmit}
+                >
                     Next
                 </Button>
             </div>

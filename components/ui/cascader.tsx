@@ -258,9 +258,9 @@ export function Cascader({
             tabIndex={disabled ? -1 : 0}
             className={cn(
                 "inline-flex items-center justify-between gap-2 whitespace-nowrap rounded-md text-sm ring-offset-background transition-colors",
-                "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 bg-input dark:bg-input/30",
+                "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 bg-background dark:bg-input/30",
                 "border border-input hover:text-accent-foreground",
-                "h-10 px-4 py-2 w-[200px] cursor-pointer",
+                "px-4 py-2 w-[200px] cursor-pointer",
                 !displayValue && "text-muted-foreground",
                 disabled && "pointer-events-none opacity-50",
                 className,

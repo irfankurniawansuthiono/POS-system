@@ -22,6 +22,7 @@ import { useAppConfig } from "@/hooks/use-app-config";
 import { VariantInfoSchema } from "@/lib/query-schema/product-schema";
 import { useTRPC } from "@/trpc/client";
 
+import { ObjectImageUpload, type ObjectImageBlob, type ObjectImageFile } from "@/components/custom/image-upload";
 import { formatNumber, parseNumber } from "@/utils/formatNumber";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useQueryClient } from "@tanstack/react-query";
@@ -34,18 +35,26 @@ export default function VariantInfoSheet({
     rowValues,
     defaultValues,
     onSave,
-    productName,
     externalErrors,
+    productName,
+    file,
+    blobPreview,
+    setFile,
+    setBlobPreview,
 }: {
     productName: string;
-    index: number;
-    rowValues: Record<string, unknown>;
-    defaultValues?: VariantInfo;
-    onSave: (index: number, data: VariantInfo) => void;
+    file: ObjectImageFile | undefined;
+    blobPreview: ObjectImageBlob | null;
+    setFile: React.Dispatch<React.SetStateAction<ObjectImageFile | undefined>>;
+    setBlobPreview: React.Dispatch<React.SetStateAction<ObjectImageBlob | null>>;
     externalErrors?: {
         barcode?: string;
         sku?: string;
     };
+    index: number;
+    rowValues: Record<string, unknown>;
+    defaultValues?: VariantInfo;
+    onSave: (index: number, data: VariantInfo) => Promise<boolean>;
 }) {
     const { data: config } = useAppConfig();
     const [open, setOpen] = useState(false);
@@ -65,6 +74,7 @@ export default function VariantInfoSheet({
                 name,
                 value: String(value),
             })),
+            imageUrl: "",
             pricingRules: [
                 {
                     minQty: 1,
@@ -79,9 +89,11 @@ export default function VariantInfoSheet({
         const basePrice = costPrice + (costPrice * profitMargin) / 100;
         return config?.isPpnEnabled && Number(config.ppn) > 0 ? basePrice * Number(config.ppn) + basePrice : basePrice;
     }
-    const handleSave = form.handleSubmit(data => {
-        onSave(index, data);
-        setOpen(false);
+    const handleSave = form.handleSubmit(async data => {
+        const success = await onSave(index, data);
+        if (success) {
+            setOpen(false); // ← hanya tutup jika berhasil
+        }
     });
 
     const costPriceWatch = useWatch({
@@ -155,13 +167,37 @@ export default function VariantInfoSheet({
     }, [form, pricingRulesFields, pricingRulesWatch]);
 
     return (
-        <Sheet open={open} onOpenChange={setOpen}>
+        <Sheet
+            open={open}
+            onOpenChange={val => {
+                console.log("onOpenChange", val);
+                setOpen(val);
+            }}
+        >
             <SheetTrigger asChild>
-                <ButtonWithIcon startIcon={<Settings />} variant="outline" size="sm" onClick={e => e.stopPropagation()}>
+                <ButtonWithIcon startIcon={<Settings />} variant="outline" size="sm">
                     Manage
                 </ButtonWithIcon>
             </SheetTrigger>
-            <SheetContent className="max-w-3xl overflow-y-auto" onInteractOutside={e => e.preventDefault()}>
+            <SheetContent
+                className="max-w-3xl overflow-y-auto"
+                onInteractOutside={e => {
+                    console.log("onInteractOutside", e.type, e.target);
+                    e.preventDefault();
+                }}
+                onFocusOutside={e => {
+                    console.log("onFocusOutside", e.type, e.target);
+                    e.preventDefault();
+                }}
+                onPointerDownOutside={e => {
+                    console.log("onPointerDownOutside", e.type, e.target);
+                    e.preventDefault();
+                }}
+                onEscapeKeyDown={e => {
+                    console.log("onEscapeKeyDown");
+                    e.preventDefault();
+                }}
+            >
                 <SheetHeader>
                     <SheetTitle>{productName}</SheetTitle>
                     <SheetDescription>
@@ -352,6 +388,37 @@ export default function VariantInfoSheet({
                             )}
                         />
                     </div>
+                    {/* product variant image */}
+                    <Controller
+                        name={"imageUrl"}
+                        control={form.control}
+                        render={({ field, fieldState }) => (
+                            <Field data-invalid={fieldState.invalid}>
+                                <FieldLabel htmlFor="stepper-form-product-variant-image">
+                                    Product Variant Image [1:1 ratio]
+                                </FieldLabel>
+                                <ObjectImageUpload
+                                    className="h-75 w-75"
+                                    imageKey={`${productName} - ${Object.values(rowValues).join(", ")}`}
+                                    value={field.value}
+                                    file={
+                                        file?.key === `${productName} - ${Object.values(rowValues).join(", ")}`
+                                            ? file
+                                            : undefined
+                                    }
+                                    blobPreview={
+                                        blobPreview?.key === `${productName} - ${Object.values(rowValues).join(", ")}`
+                                            ? blobPreview
+                                            : null
+                                    }
+                                    setFile={setFile}
+                                    setBlobPreview={setBlobPreview}
+                                    onRemove={() => form.setValue("imageUrl", "")}
+                                />
+                                {fieldState.invalid && <FieldError errors={[fieldState.error]} />}
+                            </Field>
+                        )}
+                    />
                     <SeparatorWithText text="Variant Pricing Rule" />
                     <div>
                         <ButtonWithIcon

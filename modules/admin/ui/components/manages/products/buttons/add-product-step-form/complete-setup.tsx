@@ -1,4 +1,5 @@
 import type { Category } from "@/app/generated/prisma";
+import type { ObjectImageBlob, ObjectImageFile } from "@/components/custom/image-upload";
 import SeparatorWithText from "@/components/custom/separator-with-text-1";
 import { Button } from "@/components/ui/button";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
@@ -6,23 +7,27 @@ import type { GenerateVariantAttribute, ProductInfo, VariantsInfo } from "@/lib/
 import { useTRPC } from "@/trpc/client";
 
 import { useQuery } from "@tanstack/react-query";
+import Image from "next/image";
 
 export function CompleteStep({
     formData,
     categoriesData,
     onReset,
     onPrev,
+    file,
+    blobPreview,
 }: {
     formData: {
         productInfo?: ProductInfo;
         generateVariants?: GenerateVariantAttribute;
         variantsInfo?: VariantsInfo;
     };
+    file?: ObjectImageFile | undefined;
+    blobPreview?: ObjectImageBlob | null;
     onReset: () => void;
     categoriesData: Category[];
     onPrev: () => void;
 }) {
-    console.log("formData", formData);
     const trpc = useTRPC();
     const categoryText =
         formData.productInfo?.category
@@ -35,18 +40,27 @@ export function CompleteStep({
     const { data: brand } = useQuery(trpc.brand.getById.queryOptions({ id: formData.productInfo?.brandId || "" }));
     return (
         <div className="space-y-4">
-            <div className="rounded border bg-secondary w-full p-4 space-y-3">
-                <h3 className="font-semibold">Summary</h3>
+            <div className="rounded border bg-secondary w-full p-4 space-y-3 overflow-auto">
                 <div>
                     <SeparatorWithText text="Product Summary" />
                     <Table>
-                        <TableHeader>
-                            <TableRow>
-                                <TableHead>Label</TableHead>
-                                <TableHead>Value</TableHead>
-                            </TableRow>
-                        </TableHeader>
                         <TableBody>
+                            <TableRow>
+                                <TableCell>
+                                    <strong>Image</strong>
+                                </TableCell>
+                                <TableCell>
+                                    {file?.key === "product" && blobPreview?.key === "product" && (
+                                        <Image
+                                            src={blobPreview.url}
+                                            width={400}
+                                            height={400}
+                                            alt={formData.productInfo!.name}
+                                            className="w-16 h-16 object-cover rounded-md"
+                                        />
+                                    )}
+                                </TableCell>
+                            </TableRow>
                             <TableRow>
                                 <TableCell>
                                     <strong>Name</strong>
@@ -82,6 +96,41 @@ export function CompleteStep({
 
                 {/* product variants */}
                 <SeparatorWithText text="Product Variants" />
+                <Table>
+                    <TableHeader>
+                        <TableRow>
+                            <TableHead>Label</TableHead>
+                            <TableHead>Value</TableHead>
+                            <TableHead>Image</TableHead>
+                            <TableHead>Details</TableHead>
+                        </TableRow>
+                    </TableHeader>
+                    <TableBody>
+                        {formData.variantsInfo?.variants.map(variant =>
+                            variant.attributes.map(
+                                (attr, index) => (
+                                    <TableRow key={index}>
+                                        <TableCell>{attr.name}</TableCell>
+                                        <TableCell>{attr.value}</TableCell>
+                                    </TableRow>
+                                ),
+                                file?.key === variant.sku && blobPreview?.key === variant.sku && (
+                                    <TableRow key={variant.sku}>
+                                        <TableCell colSpan={4}>
+                                            <Image
+                                                src={blobPreview.url}
+                                                width={400}
+                                                height={400}
+                                                alt={formData.productInfo!.name}
+                                                className="w-16 h-16 object-cover rounded-md"
+                                            />
+                                        </TableCell>
+                                    </TableRow>
+                                ),
+                            ),
+                        )}
+                    </TableBody>
+                </Table>
             </div>
             <div className="flex justify-end gap-4">
                 <Button type="button" variant="secondary" onClick={onPrev}>
