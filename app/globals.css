@@ -4,44 +4,27 @@
 @import "uploadthing/tw/v4";
 @source "../node_modules/@uploadthing/react/dist";
 
+@plugin "@tailwindcss/typography";
+
 @custom-variant dark (&:is(.dark *));
 
-@layer utilities {
-    .scrollbar-modern {
-        overflow: auto; /* ganti overlay → auto */
-    }
-    .scrollbar-modern::-webkit-scrollbar {
-        width: 6px;
-        height: 6px;
-    }
+/* Jalur: globals.css atau app.css Anda */
 
-    .scrollbar-modern::-webkit-scrollbar-track {
-        background: transparent !important;
-    }
+/* Placeholder untuk Tiptap */
+.product-editor-content p.is-editor-empty:first-child::before {
+    content: attr(data-placeholder);
+    float: left;
+    color: hsl(var(--muted-foreground));
+    pointer-events: none;
+    height: 0;
+}
 
-    .scrollbar-modern::-webkit-scrollbar-thumb {
-        background-color: transparent;
-        border-radius: 9999px;
-        transition: background-color 0.2s ease;
-    }
-
-    .scrollbar-modern::-webkit-scrollbar-corner {
-        background: transparent;
-    }
-
-    .scrollbar-modern:hover::-webkit-scrollbar-thumb {
-        background-color: hsl(var(--border));
-    }
-
-    /* Firefox */
-    .scrollbar-modern {
-        scrollbar-width: thin;
-        scrollbar-color: transparent transparent;
-    }
-
-    .scrollbar-modern:hover {
-        scrollbar-color: hsl(var(--border)) transparent;
-    }
+/* Opsional: Jika Anda ingin kustomisasi warna highlight <mark> di luar bawaan browser */
+.product-editor-content mark {
+    background-color: hsl(var(--warning) / 0.3);
+    color: inherit;
+    border-radius: 0.25rem;
+    padding: 0 0.125rem;
 }
 
 @theme inline {

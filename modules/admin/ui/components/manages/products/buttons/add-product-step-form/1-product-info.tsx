@@ -7,10 +7,10 @@ import { Controller, useForm } from "react-hook-form";
 import type { Category } from "@/app/generated/prisma";
 import { AsyncSelect } from "@/components/custom/async-select";
 import { ObjectImageUpload, type ObjectImageBlob, type ObjectImageFile } from "@/components/custom/image-upload";
+import { RichTextEditor } from "@/components/custom/rich-text-editor";
 import { Cascader } from "@/components/ui/cascader";
 import { Field, FieldError, FieldGroup, FieldLabel } from "@/components/ui/field";
 import { Input } from "@/components/ui/input";
-import { Textarea } from "@/components/ui/textarea";
 import { productInfoSchema, type ProductInfo } from "@/lib/query-schema/product-schema";
 import { useTRPC } from "@/trpc/client";
 import { buildProductCategoriesTree } from "@/utils/categories-tree";
@@ -73,11 +73,11 @@ export function ProductInfoForm({
                     render={({ field, fieldState }) => (
                         <Field data-invalid={fieldState.invalid}>
                             <FieldLabel htmlFor="stepper-form-product-description">Description</FieldLabel>
-                            <Textarea
-                                {...field}
-                                id="stepper-form-product-description"
-                                aria-invalid={fieldState.invalid}
-                                placeholder="This product is awesome because..."
+                            <RichTextEditor
+                                placeholder="Description of product here..."
+                                label="Please add product descrption"
+                                value={field.value}
+                                onChange={field.onChange}
                             />
                             {fieldState.invalid && <FieldError errors={[fieldState.error]} />}
                         </Field>

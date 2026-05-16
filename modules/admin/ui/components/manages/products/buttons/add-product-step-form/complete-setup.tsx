@@ -76,7 +76,14 @@ export function CompleteStep({
                                 <TableCell>
                                     <strong>Description</strong>
                                 </TableCell>
-                                <TableCell>{formData.productInfo?.description}</TableCell>
+                                <TableCell>
+                                    <div
+                                        className="prose max-h-[300px] overflow-y-auto"
+                                        dangerouslySetInnerHTML={{
+                                            __html: formData.productInfo?.description || <></>,
+                                        }}
+                                    />
+                                </TableCell>
                             </TableRow>
                             <TableRow>
                                 <TableCell>
