@@ -5,8 +5,8 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import type { GenerateVariantAttribute, ProductInfo, VariantsInfo } from "@/lib/query-schema/product-schema";
 import { useTRPC } from "@/trpc/client";
 
-import { useQuery } from "@tanstack/react-query";
-import Image from "next/image";
+import { appToast } from "@/components/custom/app-toast";
+import { useMutation, useQuery } from "@tanstack/react-query";
 import VariantDetailPreview from "./button/variant-details-preview";
 
 export function CompleteStep({
@@ -25,6 +25,18 @@ export function CompleteStep({
     onPrev: () => void;
 }) {
     const trpc = useTRPC();
+    const createProductMutation = useMutation(
+        trpc.product.create.mutationOptions({
+            onSuccess: () => {
+                onReset();
+                appToast.success("Product created successfully!");
+            },
+            onError: err => {
+                appToast.error("Error creating product : " + err.message);
+                console.error(err);
+            },
+        }),
+    );
     const categoryText =
         formData.productInfo?.category
             .map((catId: string) => {
@@ -34,7 +46,13 @@ export function CompleteStep({
             .join(" > ") || "N/A";
 
     const { data: brand } = useQuery(trpc.brand.getById.queryOptions({ id: formData.productInfo?.brandId || "" }));
-
+    const onSubmit = () => {
+        createProductMutation.mutate({
+            productInfo: formData.productInfo!,
+            generateVariants: formData.generateVariants!,
+            variantsInfo: formData.variantsInfo!,
+        });
+    };
     return (
         <div className="space-y-4">
             <div className="rounded border bg-secondary w-full p-4 space-y-3 overflow-auto">
@@ -47,11 +65,8 @@ export function CompleteStep({
                                     <strong>Image</strong>
                                 </TableCell>
                                 <TableCell>
-                                    <Image
-                                        src={
-                                            formData.productInfo?.imageUrl ||
-                                            "https://via.placeholder.com/400?text=No+Image"
-                                        }
+                                    <img
+                                        src={formData.productInfo?.imageUrl || "https://placehold.co/400?text=No+Image"}
                                         alt="product"
                                         width={400}
                                         height={400}
@@ -84,8 +99,8 @@ export function CompleteStep({
                                 </TableCell>
                                 <TableCell>{brand?.name}</TableCell>
                                 <TableCell className="w-full">
-                                    <Image
-                                        src={brand?.logoUrl || "https://via.placeholder.com/400?text=No+Image"}
+                                    <img
+                                        src={brand?.logoUrl || "https://placehold.co/400?text=No+Image"}
                                         alt="brand logo"
                                         width={70}
                                         height={70}
@@ -124,8 +139,8 @@ export function CompleteStep({
                                 <TableCell>{variant.displayName}</TableCell>
                                 <TableCell>{variant.displayName.split("-")[1]}</TableCell>
                                 <TableCell>
-                                    <Image
-                                        src={variant.imageUrl || "https://via.placeholder.com/400?text=No+Image"}
+                                    <img
+                                        src={variant.imageUrl || "https://placehold.co/400?text=No+Image"}
                                         alt="product"
                                         width={70}
                                         height={70}
@@ -147,6 +162,9 @@ export function CompleteStep({
                 </Button>
                 <Button type="button" onClick={onReset}>
                     Start Over
+                </Button>
+                <Button type="submit" onClick={onSubmit}>
+                    Finish
                 </Button>
             </div>
         </div>

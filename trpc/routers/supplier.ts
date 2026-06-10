@@ -1,4 +1,4 @@
-import useGetUniquePrismaField from "@/hooks/get-unique-prisma-field";
+import getUniquePrismaField from "@/hooks/get-unique-prisma-field";
 import { addSupplierSchema } from "@/lib/form-schema";
 import { deleteSupplierSchema, getListSupplierSchema, getSupplierSchema } from "@/lib/query-schema/supplier-schema";
 import { createTRPCRouter, withRole } from "@/trpc/init";
@@ -302,7 +302,7 @@ export const supplierRouter = createTRPCRouter({
                 return newSupplier;
             } catch (err: any) {
                 if (err.code === "P2002") {
-                    const field = useGetUniquePrismaField({ text: err.message });
+                    const field = getUniquePrismaField({ text: err.message });
 
                     const fieldMessages: Record<string, string> = {
                         name: "Known As already exists!",
@@ -383,7 +383,7 @@ export const supplierRouter = createTRPCRouter({
                 return editedSupplier;
             } catch (err: any) {
                 if (err.code === "P2002") {
-                    const field = useGetUniquePrismaField({ text: err.message });
+                    const field = getUniquePrismaField({ text: err.message });
 
                     const fieldMessages: Record<string, string> = {
                         name: "Known As already exists!",

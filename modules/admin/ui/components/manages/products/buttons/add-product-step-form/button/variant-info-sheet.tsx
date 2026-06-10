@@ -185,7 +185,6 @@ export default function VariantInfoSheet({
             </SheetTrigger>
             <SheetContent
                 className="max-w-3xl overflow-y-auto"
-                // KUNCI PERBAIKAN 3: Cegah penutupan dari interaksi luar manapun (termasuk dialog OS)
                 onInteractOutside={e => e.preventDefault()}
                 onPointerDownOutside={e => e.preventDefault()}
                 onFocusOutside={e => {

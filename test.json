@@ -1,16 +1,17 @@
 {
     "productInfo": {
-        "name": "Aqua Mineral Water",
-        "description": "saddddddddddddddddddddddddddddddddddddd",
-        "brandId": "cmocw0wji00002ssbjh0fqfgu",
-        "category": ["cmobrjadv00001dsb2qpg4kcw", "cmobrjg2p00011dsbj3me3wmb", "cmodz9hj70000a0sbkzsim12x"],
-        "isActive": true
+        "name": "Pristine Mineral Water",
+        "description": "<p>Pristine Mineral Water</p>",
+        "brandId": "cmq7v20vm0000iwdsm1uwlid9",
+        "category": ["cmp7xnu4l000080dsjikbmtqd", "cmp7xrc3b000180dsqhf8ntq8", "cmp7xrn2j000280dssu5v3a7z"],
+        "isActive": true,
+        "imageUrl": "/temp/4ae3a829-9355-4f88-a292-6be8831f5f4c.webp"
     },
     "generateVariants": {
         "attributes": [
             {
                 "name": "Ukuran",
-                "values": ["500ML", "1.5L"]
+                "values": ["600ML"]
             }
         ]
     },
@@ -18,61 +19,26 @@
         "variants": [
             {
                 "key": "0",
-                "supplierId": "cmobrkc6b00021dsbgscgq99e",
-                "stock": 100,
-                "displayName": "Aqua Mineral Water - 500ML",
-                "barcode": "8718696809198",
-                "sku": "dasadadsdas",
+                "supplierId": "cmnlzodv5000900ds5zydt8t1",
+                "stock": 0,
+                "displayName": "Pristine Mineral Water - 600ML",
+                "barcode": "8718696809198aq",
+                "sku": "sdaadasasdaa",
                 "costPrice": 10000,
                 "attributes": [
                     {
                         "name": "Ukuran",
-                        "value": "500ML"
+                        "value": "600ML"
                     }
                 ],
                 "pricingRules": [
                     {
                         "profitMargin": 10,
                         "minQty": 1,
-                        "maxQty": 11,
                         "price": 12210
-                    },
-                    {
-                        "profitMargin": 8,
-                        "minQty": 12,
-                        "maxQty": 0,
-                        "price": 11988
-                    }
-                ]
-            },
-            {
-                "key": "1",
-                "supplierId": "cmobrkc6b00021dsbgscgq99e",
-                "stock": 0,
-                "displayName": "Aqua Mineral Water - 1.5L",
-                "barcode": "8718696809198",
-                "sku": "dasadadsdas",
-                "costPrice": 100000,
-                "attributes": [
-                    {
-                        "name": "Ukuran",
-                        "value": "1.5L"
                     }
                 ],
-                "pricingRules": [
-                    {
-                        "profitMargin": 10,
-                        "minQty": 1,
-                        "maxQty": 11,
-                        "price": 122100
-                    },
-                    {
-                        "profitMargin": 8,
-                        "minQty": 12,
-                        "maxQty": 0,
-                        "price": 119880
-                    }
-                ]
+                "imageUrl": ""
             }
         ]
     }

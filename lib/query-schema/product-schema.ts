@@ -128,3 +128,11 @@ export const VariantsInfoSchema = z.object({
 });
 export type VariantsInfo = z.infer<typeof VariantsInfoSchema>;
 export type VariantInfo = z.infer<typeof VariantInfoSchema>;
+
+export const addProductSchema = z.object({
+    productInfo: productInfoSchema,
+    generateVariants: GenerateVariantAttributeSchema,
+    variantsInfo: VariantsInfoSchema,
+});
+
+export type AddProduct = z.infer<typeof addProductSchema>;

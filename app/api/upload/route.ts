@@ -2,6 +2,7 @@ import { getSession } from "@/hooks/get-session";
 import { role } from "@/modules/admin/ui/config/auth/role.user";
 import { mkdir, writeFile } from "fs/promises";
 import path from "path";
+import sharp from "sharp";
 
 export async function POST(req: Request) {
     const session = await getSession();
@@ -19,8 +20,7 @@ export async function POST(req: Request) {
     }
 
     // ambil extension asli
-    const ext = file.name.split(".").pop();
-    const fileName = `${crypto.randomUUID()}.${ext}`;
+    const fileName = `${crypto.randomUUID()}.webp`;
 
     const uploadDir = path.join(process.cwd(), "/temp");
 
@@ -32,7 +32,17 @@ export async function POST(req: Request) {
     const bytes = await file.arrayBuffer();
     const buffer = Buffer.from(bytes);
 
-    await writeFile(filePath, buffer);
+    const optimizedBuffer = await sharp(buffer)
+        .resize(1000, 1000, {
+            fit: "contain",
+            background: "#ffffff",
+        })
+        .webp({
+            quality: 80,
+        })
+        .toBuffer();
+
+    await writeFile(filePath, optimizedBuffer);
 
     return Response.json({
         url: `/temp/${fileName}`,

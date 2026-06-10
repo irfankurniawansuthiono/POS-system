@@ -2,6 +2,7 @@ import { createTRPCRouter } from "@/trpc/init";
 import { appConfigRouter } from "./appConfig";
 import { brandRouter } from "./brand";
 import { categoryRouter } from "./category";
+import { productRouter } from "./product";
 import { supplierRouter } from "./supplier";
 import { userRouter } from "./user";
 export const appRouter = createTRPCRouter({
@@ -10,6 +11,7 @@ export const appRouter = createTRPCRouter({
     brand: brandRouter,
     supplier: supplierRouter,
     appConfig: appConfigRouter,
+    product: productRouter,
 });
 // export type definition of API
 export type AppRouter = typeof appRouter;
