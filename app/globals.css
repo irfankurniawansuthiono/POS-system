@@ -8,10 +8,7 @@
 
 @custom-variant dark (&:is(.dark *));
 
-/* Jalur: globals.css atau app.css Anda */
-
-/* Placeholder untuk Tiptap */
-.product-editor-content p.is-editor-empty:first-child::before {
+.rich-editor-content p.is-editor-empty:first-child::before {
     content: attr(data-placeholder);
     float: left;
     color: hsl(var(--muted-foreground));
@@ -19,8 +16,7 @@
     height: 0;
 }
 
-/* Opsional: Jika Anda ingin kustomisasi warna highlight <mark> di luar bawaan browser */
-.product-editor-content mark {
+.rich-editor-content mark {
     background-color: hsl(var(--warning) / 0.3);
     color: inherit;
     border-radius: 0.25rem;

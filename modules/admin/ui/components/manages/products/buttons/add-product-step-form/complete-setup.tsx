@@ -1,5 +1,4 @@
 import type { Category } from "@/app/generated/prisma";
-import type { ObjectImageBlob, ObjectImageFile } from "@/components/custom/image-upload";
 import SeparatorWithText from "@/components/custom/separator-with-text-1";
 import { Button } from "@/components/ui/button";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
@@ -15,16 +14,12 @@ export function CompleteStep({
     categoriesData,
     onReset,
     onPrev,
-    file,
-    blobPreview,
 }: {
     formData: {
         productInfo?: ProductInfo;
         generateVariants?: GenerateVariantAttribute;
         variantsInfo?: VariantsInfo;
     };
-    file: ObjectImageFile[] | undefined;
-    blobPreview: ObjectImageBlob[] | null;
     onReset: () => void;
     categoriesData: Category[];
     onPrev: () => void;
@@ -52,18 +47,16 @@ export function CompleteStep({
                                     <strong>Image</strong>
                                 </TableCell>
                                 <TableCell>
-                                    {blobPreview && (
-                                        <Image
-                                            src={
-                                                blobPreview.find(blob => blob.key === "product")?.url ??
-                                                "https://placehold.co/400x400"
-                                            }
-                                            alt="product"
-                                            width={400}
-                                            height={400}
-                                            className="object-contain"
-                                        />
-                                    )}
+                                    <Image
+                                        src={
+                                            formData.productInfo?.imageUrl ||
+                                            "https://via.placeholder.com/400?text=No+Image"
+                                        }
+                                        alt="product"
+                                        width={400}
+                                        height={400}
+                                        className="object-contain"
+                                    />
                                 </TableCell>
                             </TableRow>
                             <TableRow>
@@ -78,7 +71,7 @@ export function CompleteStep({
                                 </TableCell>
                                 <TableCell>
                                     <div
-                                        className="prose max-h-[300px] overflow-y-auto"
+                                        className="prose max-h-75 overflow-y-auto"
                                         dangerouslySetInnerHTML={{
                                             __html: formData.productInfo?.description || <></>,
                                         }}
@@ -91,9 +84,13 @@ export function CompleteStep({
                                 </TableCell>
                                 <TableCell>{brand?.name}</TableCell>
                                 <TableCell className="w-full">
-                                    {brand?.logoUrl && (
-                                        <img src={brand.logoUrl} alt={brand.name} className="w-16 h-16 object-fit" />
-                                    )}
+                                    <Image
+                                        src={brand?.logoUrl || "https://via.placeholder.com/400?text=No+Image"}
+                                        alt="brand logo"
+                                        width={70}
+                                        height={70}
+                                        className="object-contain"
+                                    />
                                 </TableCell>
                             </TableRow>
                             <TableRow>
@@ -112,6 +109,7 @@ export function CompleteStep({
                     <TableHeader>
                         <TableRow>
                             <TableHead>No.</TableHead>
+                            <TableHead>Name</TableHead>
                             <TableHead>Variant</TableHead>
                             <TableHead>Image</TableHead>
                             <TableHead>Details</TableHead>
@@ -123,21 +121,18 @@ export function CompleteStep({
                                 <TableCell>
                                     <strong>{index + 1}</strong>
                                 </TableCell>
+                                <TableCell>{variant.displayName}</TableCell>
                                 <TableCell>{variant.displayName.split("-")[1]}</TableCell>
                                 <TableCell>
-                                    {blobPreview && (
-                                        <Image
-                                            src={
-                                                blobPreview.find(blob => blob.key === variant.displayName)?.url ??
-                                                "https://placehold.co/100x100"
-                                            }
-                                            alt="product"
-                                            width={100}
-                                            height={100}
-                                            className="object-contain"
-                                        />
-                                    )}
+                                    <Image
+                                        src={variant.imageUrl || "https://via.placeholder.com/400?text=No+Image"}
+                                        alt="product"
+                                        width={70}
+                                        height={70}
+                                        className="object-contain"
+                                    />
                                 </TableCell>
+
                                 <TableCell>
                                     <VariantDetailPreview data={variant} />
                                 </TableCell>

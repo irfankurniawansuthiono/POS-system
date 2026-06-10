@@ -21,7 +21,7 @@ import React, { useState } from "react";
 
 // form
 import type { Category } from "@/app/generated/prisma";
-import type { ObjectImageBlob, ObjectImageFile } from "@/components/custom/image-upload";
+import type { ObjectImageBlob, ObjectImageFile } from "@/components/backup/backup-image-upload";
 import type { FormDataAddProduct, ProductAddFormId } from "./add-product-step-form";
 import { ProductInfoForm } from "./add-product-step-form/1-product-info";
 import { GenerateProductVariantsForm } from "./add-product-step-form/2-generate-product-variant";

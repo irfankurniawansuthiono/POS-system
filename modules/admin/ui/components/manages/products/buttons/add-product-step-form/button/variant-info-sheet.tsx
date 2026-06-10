@@ -22,7 +22,7 @@ import { useAppConfig } from "@/hooks/use-app-config";
 import { VariantInfoSchema } from "@/lib/query-schema/product-schema";
 import { useTRPC } from "@/trpc/client";
 
-import { ObjectImageUpload, type ObjectImageBlob, type ObjectImageFile } from "@/components/custom/image-upload";
+import { SingleImageUpload } from "@/components/custom/image-upload";
 import { formatNumber, parseNumber } from "@/utils/formatNumber";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useQueryClient } from "@tanstack/react-query";
@@ -39,18 +39,10 @@ export default function VariantInfoSheet({
     productName,
     isOpen, // 🌟 Terima dari props
     onClose, // 🌟 Terima dari props
-    file,
-    blobPreview,
-    setFile,
-    setBlobPreview,
 }: {
     productName: string;
     isOpen: boolean;
     onClose: () => void;
-    file: ObjectImageFile[] | undefined;
-    blobPreview: ObjectImageBlob[] | null;
-    setFile: React.Dispatch<React.SetStateAction<ObjectImageFile[] | undefined>>;
-    setBlobPreview: React.Dispatch<React.SetStateAction<ObjectImageBlob[] | null>>;
     externalErrors?: {
         barcode?: string;
         sku?: string;
@@ -400,14 +392,11 @@ export default function VariantInfoSheet({
                                 <FieldLabel htmlFor="stepper-form-product-variant-image">
                                     Product Variant Image [1:1 ratio]
                                 </FieldLabel>
-                                <ObjectImageUpload
-                                    className="h-75 w-75"
-                                    imageKey={`${productName} - ${Object.values(rowValues).join(", ")}`}
+                                <SingleImageUpload
+                                    className="aspect-square! w-75! h-75!"
                                     value={field.value}
-                                    file={file}
-                                    blobPreview={blobPreview}
-                                    setFile={setFile}
-                                    setBlobPreview={setBlobPreview}
+                                    onChange={field.onChange}
+                                    pathName="products/variants"
                                     onRemove={() => form.setValue("imageUrl", "")}
                                 />
                                 {fieldState.invalid && <FieldError errors={[fieldState.error]} />}

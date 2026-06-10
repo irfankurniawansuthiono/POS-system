@@ -5,7 +5,7 @@ import path from "path";
 export async function GET(req: Request, { params }: { params: Promise<{ pathName: string[] }> }) {
     const { pathName } = await params;
     try {
-        const baseDir = path.join(process.cwd(), "uploads");
+        const baseDir = path.join(process.cwd(), "temp");
         const filePath = path.join(baseDir, ...pathName);
 
         if (!filePath.startsWith(baseDir)) {

@@ -116,6 +116,7 @@ export default function VariantDetailPreview({ data }: { data: VariantInfo }) {
                                                     <TableHead>Min Qty</TableHead>
                                                     <TableHead>Max Qty</TableHead>
                                                     <TableHead>Price</TableHead>
+                                                    <TableHead>Image</TableHead>
                                                 </TableRow>
                                             </TableHeader>
 
@@ -129,6 +130,17 @@ export default function VariantDetailPreview({ data }: { data: VariantInfo }) {
 
                                                             <TableCell>
                                                                 Rp {rule.price.toLocaleString("id-ID")}
+                                                            </TableCell>
+                                                            <TableCell>
+                                                                {data.imageUrl && (
+                                                                    <Image
+                                                                        width={32}
+                                                                        height={32}
+                                                                        src={data.imageUrl}
+                                                                        alt={data.displayName}
+                                                                        className="rounded-md border object-cover"
+                                                                    />
+                                                                )}
                                                             </TableCell>
                                                         </TableRow>
                                                     ))
@@ -147,23 +159,6 @@ export default function VariantDetailPreview({ data }: { data: VariantInfo }) {
                                     </div>
                                 </TableCell>
                             </TableRow>
-                            {data.imageUrl && (
-                                <TableRow>
-                                    <TableCell className="py-3 pr-4 font-medium text-muted-foreground align-top">
-                                        Image
-                                    </TableCell>
-
-                                    <TableCell className="py-3">
-                                        <Image
-                                            width={32}
-                                            height={32}
-                                            src={data.imageUrl}
-                                            alt={data.displayName}
-                                            className="rounded-md border object-cover"
-                                        />
-                                    </TableCell>
-                                </TableRow>
-                            )}
                         </TableBody>
                     </Table>
                 </div>

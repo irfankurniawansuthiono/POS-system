@@ -2,53 +2,48 @@
 
 import { appToast } from "@/components/custom/app-toast";
 import { useUploadThing } from "@/components/uploadthing";
+import { useDeleteImage } from "@/hooks/use-remove-image";
+import { useUploadImage } from "@/hooks/use-upload-image";
 import { cn } from "@/lib/utils";
 import { useDropzone } from "@uploadthing/react";
 import { ImagePlus, Loader2, Upload, X } from "lucide-react";
 import Image from "next/image";
-import React, { useCallback, useState } from "react";
-import { Label } from "../ui/label";
+import { useCallback, useState } from "react";
 
 // ==================== SINGLE IMAGE UPLOAD ====================
+
 interface SingleImageUploadProps {
     value?: string;
-    onChange?: (url: string) => void;
+    onChange: (url: string) => void;
     onRemove: () => void;
     disabled?: boolean;
     className?: string;
-    label?: string;
-    setFile: (file: File | undefined) => void;
-    setBlobPreview: React.Dispatch<React.SetStateAction<string | null>>;
-    blobPreview: string | null;
+    pathName: string; // Add pathName prop
 }
-/* eslint-disable @typescript-eslint/no-unused-vars */
 
 export function SingleImageUpload({
     value,
     onChange,
-    setFile,
     onRemove,
     disabled,
-    blobPreview,
-    setBlobPreview,
-    label,
     className,
+    pathName,
 }: SingleImageUploadProps) {
-    /* eslint-disable @typescript-eslint/no-unused-vars */
-    const [isUploading, setIsUploading] = useState(false);
     const [isDeleting, setIsDeleting] = useState(false);
+    const [isUploaded, setIsUploaded] = useState(false);
+    const { uploadImage, isUploading, progress } = useUploadImage({
+        pathName: pathName,
+    });
 
     const onDrop = useCallback(
-        (acceptedFiles: File[]) => {
+        async (acceptedFiles: File[]) => {
             if (acceptedFiles.length > 0) {
-                const selectedFile = acceptedFiles[0];
-                setFile(selectedFile);
-                // preview saja
-                const previewUrl = URL.createObjectURL(selectedFile);
-                setBlobPreview(previewUrl);
+                const url = await uploadImage(acceptedFiles[0]);
+                onChange(url);
+                setIsUploaded(true);
             }
         },
-        [setFile, setBlobPreview],
+        [uploadImage, onChange],
     );
 
     const { getRootProps, getInputProps, isDragActive } = useDropzone({
@@ -58,136 +53,147 @@ export function SingleImageUpload({
         disabled: disabled || isUploading,
     });
 
+    const { deleteImage } = useDeleteImage({
+        onSuccess: () => {
+            onRemove();
+            setIsUploaded(false);
+        },
+        onError: err => {
+            appToast.error(err.message);
+        },
+    });
+
     const handleRemove = async () => {
-        if (blobPreview) URL.revokeObjectURL(blobPreview);
-        setBlobPreview(null);
-        setFile(undefined);
-        if (value) {
-            onChange?.("");
-        }
         if (!value || isDeleting) return;
-        onRemove?.();
-        // setIsDeleting(true);
-        // try {
-        //   const res = await fetch("/api/upload/delete", {
-        //     method: "POST",
-        //     headers: {
-        //       "Content-Type": "application/json",
-        //     },
-        //     body: JSON.stringify({ url: value }),
-        //   });
-
-        //   if (!res.ok) throw new Error("Failed to delete");
-
-        //   onRemove();
-        //   appToast.success("Image has been deleted");
-        // } catch {
-        //   appToast.error("Failed to delete image");
-        // } finally {
-        //   setIsDeleting(false);
-        // }
+        setIsDeleting(true);
+        try {
+            await deleteImage(value);
+        } catch {
+            appToast.error("Failed to delete image");
+        } finally {
+            setIsDeleting(false);
+        }
     };
 
     // If image exists, show preview with delete button
-    if (blobPreview || value) {
+    if (value) {
         return (
-            <>
-                {label && <Label>{label}</Label>}
+            <div
+                className={cn(
+                    "relative group rounded-xl overflow-hidden border border-border bg-muted/30",
+                    "w-full aspect-video",
+                    className,
+                )}
+            >
+                <Image
+                    src={value}
+                    alt="Uploaded image"
+                    fill
+                    className="object-cover transition-transform duration-300 group-hover:scale-105"
+                />
+
+                {/* Success gradient */}
                 <div
                     className={cn(
-                        "relative group rounded-xl overflow-hidden border border-border bg-muted/30",
-                        "w-full aspect-video",
-                        className,
+                        "absolute inset-x-0 top-0 h-24 z-1 transition-all duration-700",
+                        isUploaded
+                            ? "bg-linear-to-b from-emerald-500/80 via-emerald-400/30 to-transparent opacity-100"
+                            : "opacity-0",
+                    )}
+                />
+
+                {/* Dark hover overlay */}
+                <div className="absolute inset-0 bg-black/0 group-hover:bg-black/40 transition-all duration-300" />
+
+                {/* Delete button */}
+                <button
+                    type="button"
+                    onClick={handleRemove}
+                    disabled={isDeleting || disabled}
+                    className={cn(
+                        "absolute top-2 right-2 z-10",
+                        "flex items-center justify-center",
+                        "size-8 rounded-full",
+                        "bg-destructive/90 text-destructive-foreground",
+                        "opacity-0 group-hover:opacity-100",
+                        "hover:bg-destructive hover:scale-110",
+                        "transition-all duration-200",
+                        "shadow-lg backdrop-blur-sm",
+                        "disabled:opacity-50 disabled:cursor-not-allowed",
                     )}
                 >
-                    <Image
-                        src={(value || blobPreview) as string}
-                        unoptimized
-                        alt="Uploaded image"
-                        fill
-                        className="object-cover transition-transform duration-300 group-hover:scale-105"
-                    />
-                    {/* Overlay on hover */}
-                    <div className="absolute inset-0 bg-black/0 group-hover:bg-black/40 transition-all duration-300" />
-                    {/* Delete button */}
-                    <button
-                        type="button"
-                        onClick={handleRemove}
-                        disabled={isDeleting || disabled}
-                        className={cn(
-                            "absolute top-2 right-2 z-10",
-                            "flex items-center justify-center",
-                            "size-8 rounded-full",
-                            "bg-destructive/90 text-destructive-foreground",
-                            "opacity-0 group-hover:opacity-100",
-                            "hover:bg-destructive hover:scale-110",
-                            "transition-all duration-200",
-                            "shadow-lg backdrop-blur-sm",
-                            "disabled:opacity-50 disabled:cursor-not-allowed",
-                        )}
-                    >
-                        {isDeleting ? <Loader2 className="size-4 animate-spin" /> : <X className="size-4" />}
-                    </button>
-                </div>
-            </>
+                    {isDeleting ? <Loader2 className="size-4 animate-spin" /> : <X className="size-4" />}
+                </button>
+            </div>
         );
     }
 
     // Dropzone
     return (
-        <>
-            {/* label */}
-            {label && <Label>{label}</Label>}
-            <div
-                {...getRootProps()}
-                className={cn(
-                    "relative cursor-pointer rounded-xl border-2 border-dashed",
-                    "w-full aspect-video",
-                    "flex flex-col items-center justify-center gap-3",
-                    "transition-all duration-300 ease-out",
-                    isDragActive
-                        ? "border-primary bg-primary/5 scale-[1.02] shadow-lg shadow-primary/10"
-                        : "border-muted-foreground/25 bg-muted/20 hover:border-primary/50 hover:bg-muted/40",
-                    (disabled || isUploading) && "opacity-50 cursor-not-allowed",
-                    className,
-                )}
-            >
-                {/* Input */}
-                <input {...getInputProps()} />
-                {isUploading ? (
-                    <>
-                        <div className="relative">
-                            <div className="absolute inset-0 rounded-full bg-primary/20 animate-ping" />
-                            <Loader2 className="size-10 text-primary animate-spin" />
+        <div
+            {...getRootProps()}
+            className={cn(
+                "relative cursor-pointer rounded-xl border-2 border-dashed",
+                "w-full aspect-video",
+                "flex flex-col items-center justify-center gap-3",
+                "transition-all duration-300 ease-out",
+                isDragActive
+                    ? "border-primary bg-primary/5 scale-[1.02] shadow-lg shadow-primary/10"
+                    : "border-muted-foreground/25 bg-muted/20 hover:border-primary/50 hover:bg-muted/40",
+                (disabled || isUploading) && "opacity-50 cursor-not-allowed",
+                className,
+            )}
+        >
+            <input {...getInputProps()} />
+            {/* Liquid progress overlay */}
+            {isUploading ? (
+                <div className="absolute inset-0 z-20 overflow-hidden">
+                    <div
+                        className="absolute bottom-0 left-0 w-full bg-emerald-500/70 backdrop-blur-sm transition-all duration-300"
+                        style={{
+                            height: `${progress}%`,
+                        }}
+                    />
+
+                    {/* Animated waves */}
+                    <div
+                        className="absolute left-0 w-[200%] h-10 bg-emerald-400/40 blur-md animate-pulse"
+                        style={{
+                            bottom: `calc(${progress}% - 20px)`,
+                        }}
+                    />
+
+                    <div className="absolute inset-0 flex items-center justify-center">
+                        <div className="rounded-full bg-black/50 backdrop-blur-md px-4 py-2 text-white text-sm font-semibold">
+                            {progress}%
                         </div>
-                        <p className="text-sm text-muted-foreground font-medium">Uploading image...</p>
-                    </>
-                ) : (
-                    <>
-                        <div
-                            className={cn(
-                                "rounded-full p-3 transition-colors duration-300",
-                                isDragActive ? "bg-primary/10 text-primary" : "bg-muted text-muted-foreground",
-                            )}
-                        >
-                            <ImagePlus className="size-8" />
-                        </div>
-                        <div className="text-center space-y-1">
-                            <p className="text-sm font-medium text-foreground">
-                                {isDragActive ? "Drop image here" : "Drag & drop image"}
-                            </p>
-                            <p className="text-xs text-muted-foreground">
-                                or{" "}
-                                <span className="text-primary font-medium underline underline-offset-2">
-                                    click to select
-                                </span>
-                            </p>
-                            <p className="text-xs text-muted-foreground/60">PNG, JPG, WEBP • Max 4MB</p>
-                        </div>
-                    </>
-                )}
-            </div>
-        </>
+                    </div>
+                </div>
+            ) : (
+                <>
+                    <div
+                        className={cn(
+                            "rounded-full p-3 transition-colors duration-300",
+                            isDragActive ? "bg-primary/10 text-primary" : "bg-muted text-muted-foreground",
+                        )}
+                    >
+                        <ImagePlus className="size-8" />
+                    </div>
+                    <div className="text-center space-y-1">
+                        <p className="text-sm font-medium text-foreground">
+                            {isDragActive ? "Drop image here" : "Drag & drop image"}
+                        </p>
+                        <p className="text-xs text-muted-foreground">
+                            or{" "}
+                            <span className="text-primary font-medium underline underline-offset-2">
+                                click to select
+                            </span>
+                        </p>
+                        <p className="text-xs text-muted-foreground/60">PNG, JPG, WEBP • Max 4MB</p>
+                    </div>
+                </>
+            )}
+        </div>
     );
 }
 
@@ -377,218 +383,6 @@ export function MultiImageUpload({ value = [], onChange, disabled, maxFiles = 5,
                     )}
                 </div>
             )}
-        </div>
-    );
-}
-
-export interface ObjectImageFile {
-    key: string;
-    file: File;
-}
-
-export interface ObjectImageBlob {
-    key: string;
-    url: string;
-}
-
-interface ObjectImageUploadProps {
-    imageKey: string;
-
-    value?: string;
-
-    file: ObjectImageFile[] | undefined;
-    blobPreview: ObjectImageBlob[] | null;
-
-    setFile: React.Dispatch<React.SetStateAction<ObjectImageFile[] | undefined>>;
-    setBlobPreview: React.Dispatch<React.SetStateAction<ObjectImageBlob[] | null>>;
-
-    onRemove?: () => void;
-
-    disabled?: boolean;
-    label?: string;
-    className?: string;
-}
-export function ObjectImageUpload({
-    imageKey,
-    value,
-    file,
-    blobPreview,
-    setFile,
-    setBlobPreview,
-    onRemove,
-    disabled,
-    label,
-    className,
-}: ObjectImageUploadProps) {
-    const currentBlobPreview = blobPreview?.find(item => item.key === imageKey);
-    const displaySrc = value || currentBlobPreview?.url;
-
-    const onDrop = useCallback(
-        (acceptedFiles: File[]) => {
-            if (acceptedFiles.length === 0) return;
-
-            const selectedFile = acceptedFiles[0];
-
-            // revoke old preview
-            if (currentBlobPreview?.url) {
-                URL.revokeObjectURL(currentBlobPreview.url);
-            }
-
-            // update file array
-            setFile(prev => {
-                const filtered = prev?.filter(item => item.key !== imageKey) ?? [];
-
-                return [
-                    ...filtered,
-                    {
-                        key: imageKey,
-                        file: selectedFile,
-                    },
-                ];
-            });
-
-            // create preview
-            const previewUrl = URL.createObjectURL(selectedFile);
-
-            setBlobPreview(prev => {
-                const filtered = prev?.filter(item => item.key !== imageKey) ?? [];
-
-                return [
-                    ...filtered,
-                    {
-                        key: imageKey,
-                        url: previewUrl,
-                    },
-                ];
-            });
-        },
-        [imageKey, currentBlobPreview, setFile, setBlobPreview],
-    );
-
-    const handleRemove = () => {
-        if (currentBlobPreview?.url) {
-            URL.revokeObjectURL(currentBlobPreview.url);
-        }
-
-        setFile(prev => prev?.filter(item => item.key !== imageKey));
-
-        setBlobPreview(prev => {
-            const filtered = prev?.filter(item => item.key !== imageKey);
-
-            return filtered && filtered.length > 0 ? filtered : null;
-        });
-
-        if (value) {
-            onRemove?.();
-        }
-    };
-
-    const { getRootProps, getInputProps, isDragActive } = useDropzone({
-        onDrop,
-        accept: { "image/*": [".png", ".jpg", ".jpeg", ".webp", ".svg"] },
-        maxFiles: 1,
-        disabled: disabled,
-    });
-
-    // ── Preview mode ──────────────────────────────────────────────
-    if (displaySrc) {
-        return (
-            <div className="space-y-1.5">
-                {label && <Label>{label}</Label>}
-                <div
-                    className={cn(
-                        "relative group rounded-xl overflow-hidden border border-border bg-muted/30 ",
-                        "aspect-square!",
-                        className,
-                    )}
-                >
-                    <Image
-                        unoptimized
-                        fill
-                        src={displaySrc}
-                        alt={`Image for ${imageKey}`}
-                        className="object-contain transition-transform duration-300 group-hover:scale-105"
-                    />
-
-                    {/* Overlay on hover */}
-                    <div className="absolute inset-0 bg-black/0 group-hover:bg-black/40 transition-all duration-300" />
-
-                    {/* KUNCI PERBAIKAN 1: Bungkus input & dropzone terpisah, jangan jadikan button sebagai anak dropzone */}
-                    <div {...getRootProps()} className="absolute inset-0 cursor-pointer z-0">
-                        <input {...getInputProps()} />
-                    </div>
-
-                    {/* KUNCI PERBAIKAN 2: Pastikan button memiliki z-index lebih tinggi (z-10) dan stopPropagation */}
-                    <button
-                        type="button"
-                        onClick={(e: React.MouseEvent) => {
-                            e.stopPropagation(); // Mencegah click lari ke dropzone
-                            e.preventDefault(); // Mencegah trigger bawaan browser
-                            handleRemove();
-                        }}
-                        disabled={disabled}
-                        className={cn(
-                            "absolute top-2 right-2 z-10", // Tetap di atas layer dropzone
-                            "flex items-center justify-center",
-                            "size-8 rounded-full",
-                            "bg-destructive/90 text-destructive-foreground",
-                            "opacity-0 group-hover:opacity-100",
-                            "hover:bg-destructive hover:scale-110",
-                            "transition-all duration-200",
-                            "shadow-lg backdrop-blur-sm",
-                            "disabled:opacity-50 disabled:cursor-not-allowed",
-                        )}
-                    >
-                        <X className="size-4" />
-                    </button>
-                </div>
-            </div>
-        );
-    }
-
-    // ── Dropzone mode ─────────────────────────────────────────────
-    return (
-        <div className="space-y-1.5">
-            {label && <Label>{label}</Label>}
-            <div
-                {...getRootProps()}
-                onClick={e => {
-                    getRootProps().onClick?.(e);
-                }}
-                className={cn(
-                    "relative cursor-pointer rounded-xl border-2 border-dashed",
-                    "w-full aspect-video",
-                    "flex flex-col items-center justify-center gap-3",
-                    "transition-all duration-300 ease-out",
-                    isDragActive
-                        ? "border-primary bg-primary/5 scale-[1.02] shadow-lg shadow-primary/10"
-                        : "border-muted-foreground/25 bg-muted/20 hover:border-primary/50 hover:bg-muted/40",
-                    disabled && "opacity-50 cursor-not-allowed",
-                    className,
-                )}
-            >
-                <input {...getInputProps()} />
-
-                <div
-                    className={cn(
-                        "rounded-full p-3 transition-colors duration-300",
-                        isDragActive ? "bg-primary/10 text-primary" : "bg-muted text-muted-foreground",
-                    )}
-                >
-                    <ImagePlus className="size-8" />
-                </div>
-
-                <div className="text-center space-y-1">
-                    <p className="text-sm font-medium text-foreground">
-                        {isDragActive ? "Drop image here" : "Drag & drop image"}
-                    </p>
-                    <p className="text-xs text-muted-foreground">
-                        or{" "}
-                        <span className="text-primary font-medium underline underline-offset-2">click to select</span>
-                    </p>
-                    <p className="text-xs text-muted-foreground/60">PNG, JPG, WEBP • Max 4MB</p>
-                </div>
-            </div>
         </div>
     );
 }

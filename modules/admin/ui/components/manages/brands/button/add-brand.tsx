@@ -15,23 +15,20 @@ import {
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import { Spinner } from "@/components/ui/spinner";
-import { Ribbon } from "lucide-react";
+import { Plus, Ribbon } from "lucide-react";
 import { useState } from "react";
 import { useForm } from "react-hook-form";
 
 import { appToast } from "@/components/custom/app-toast";
 import { SingleImageUpload } from "@/components/custom/image-upload";
 import { useDeleteImage } from "@/hooks/use-remove-image";
-import { useUploadImage } from "@/hooks/use-upload-image";
 import { AddBrandFormValues, addBrandSchema } from "@/lib/form-schema";
 import { useTRPC } from "@/trpc/client";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
-export default function AddBrand() {
+export default function AddBrand({ page }: { page?: "default" | "product" } = { page: "default" }) {
     const [error, setError] = useState<string | undefined>(undefined);
     const [dialogOpen, setDialogOpen] = useState(false);
-    const [file, setFile] = useState<File>();
-    const [blobPreview, setBlobPreview] = useState<string | null>(null);
 
     const queryClient = useQueryClient();
     const form = useForm<AddBrandFormValues>({
@@ -67,42 +64,30 @@ export default function AddBrand() {
                 if (data.logoUrl) {
                     deleteImage(data.logoUrl);
                     form.setValue("logoUrl", "");
-                    setBlobPreview(null);
-                    setFile(undefined);
                 }
                 appToast.error(err.message || "Something went wrong!");
             },
         }),
     );
 
-    const { uploadImage, isUploading } = useUploadImage({
-        pathName: "brands",
-        onSuccess: url => {
-            form.setValue("logoUrl", url);
-        },
-        onError: err => {
-            appToast.error(err.message);
-        },
-    });
-
     const onSubmit = async (data: AddBrandFormValues) => {
         setError(undefined);
-        if (file) {
-            const url = await uploadImage(file);
-            data.logoUrl = url;
-            setFile(undefined);
-            setBlobPreview(null);
-        }
         createBrandMutation.mutate(data);
     };
     return (
         <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
             <DialogTrigger asChild>
-                <ButtonWithIcon startIcon={<Ribbon />} variant="default">
-                    Add New Brand
-                </ButtonWithIcon>
+                {page === "default" ? (
+                    <ButtonWithIcon startIcon={<Ribbon />} variant="default">
+                        Add New Brand
+                    </ButtonWithIcon>
+                ) : (
+                    <Button size={"icon"} variant="outline">
+                        <Plus size={16} />
+                    </Button>
+                )}
             </DialogTrigger>
-            <DialogContent className="sm:max-w-sm">
+            <DialogContent>
                 <Form {...form}>
                     <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
                         <DialogHeader>
@@ -138,16 +123,19 @@ export default function AddBrand() {
                             control={form.control}
                             name="logoUrl"
                             render={({ field }) => (
-                                <SingleImageUpload
-                                    blobPreview={blobPreview}
-                                    setBlobPreview={setBlobPreview}
-                                    setFile={setFile}
-                                    label="Brand's Logo"
-                                    value={field.value}
-                                    onChange={field.onChange}
-                                    onRemove={() => field.onChange("")}
-                                    disabled={createBrandMutation.isPending}
-                                />
+                                <FormItem>
+                                    <FormLabel>Brand&apos;s Logo</FormLabel>
+                                    <FormControl>
+                                        <SingleImageUpload
+                                            pathName="brands"
+                                            value={field.value}
+                                            onChange={field.onChange}
+                                            onRemove={() => field.onChange("")}
+                                            disabled={createBrandMutation.isPending}
+                                        />
+                                    </FormControl>
+                                    <FormMessage />
+                                </FormItem>
                             )}
                         />
                         <DialogFooter>
@@ -158,6 +146,10 @@ export default function AddBrand() {
                             </DialogClose>
                             <ButtonWithIcon
                                 type="submit"
+                                onClick={e => {
+                                    e.preventDefault();
+                                    form.handleSubmit(onSubmit)(e);
+                                }}
                                 startIcon={createBrandMutation.isPending ? <Spinner /> : <Ribbon />}
                                 className={`${
                                     createBrandMutation.isPending || !form.formState.isValid

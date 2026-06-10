@@ -1,5 +1,4 @@
 import { Heading } from "@/components/custom/heading";
-import type { ObjectImageBlob, ObjectImageFile } from "@/components/custom/image-upload";
 import { Button } from "@/components/ui/button";
 import { Table, TableBody, TableCell, TableFooter, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import type { VariantInfo, VariantsInfo } from "@/lib/query-schema/product-schema";
@@ -19,16 +18,8 @@ export default function VariantInfo({
     combinated,
     setCombinated,
     formData,
-    file,
-    blobPreview,
-    setFile,
-    setBlobPreview,
 }: {
     onNext: (data: VariantsInfo) => void;
-    file: ObjectImageFile[] | undefined;
-    blobPreview: ObjectImageBlob[] | null;
-    setFile: React.Dispatch<React.SetStateAction<ObjectImageFile[] | undefined>>;
-    setBlobPreview: React.Dispatch<React.SetStateAction<ObjectImageBlob[] | null>>;
     defaultValues?: VariantsInfo;
     formData: FormDataAddProduct;
     onPrev: () => void;
@@ -202,10 +193,6 @@ export default function VariantInfo({
                 <VariantInfoSheet
                     isOpen={activeVariantIndex !== null}
                     onClose={() => setActiveVariantIndex(null)}
-                    file={file}
-                    setFile={setFile}
-                    blobPreview={blobPreview}
-                    setBlobPreview={setBlobPreview}
                     productName={formData.productInfo?.name || ""}
                     index={activeVariantIndex}
                     defaultValues={watchedVariants?.[activeVariantIndex]}

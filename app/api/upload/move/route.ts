@@ -11,25 +11,22 @@ export async function POST(req: Request) {
         return Response.json({ error: "Unauthorized" }, { status: 401 });
     }
 
-    const { url } = await req.json();
-
-    if (!url) {
-        return Response.json({ error: "No URL provided" }, { status: 400 });
+    const { url, pathName } = await req.json();
+    if (!url || !pathName) {
+        return Response.json({ error: "No URL or pathName provided" }, { status: 400 });
     }
-    console.log("Request to delete file with URL:", url);
+    console.log("Request to move file with URL:", url);
     try {
         // ubah URL jadi path file
         const filePath = path.join(process.cwd(), url);
+        const newFilePath = path.join(process.cwd(), "images", pathName);
 
         await unlink(filePath);
+        await unlink(newFilePath);
 
-        return Response.json({ success: true });
+        return Response.json({ success: true, message: "File moved successfully", url: newFilePath }, { status: 200 });
     } catch (err) {
         console.error(err);
-        // jika no such file, tetap return success agar tidak error saat delete file yang sudah tidak ada
-        if ((err as NodeJS.ErrnoException).code === "ENOENT") {
-            return Response.json({ success: true });
-        }
-        return Response.json({ error: "Failed to delete file" }, { status: 500 });
+        return Response.json({ error: "Failed to move file" }, { status: 500 });
     }
 }

@@ -6,7 +6,7 @@ import { Controller, useForm } from "react-hook-form";
 
 import type { Category } from "@/app/generated/prisma";
 import { AsyncSelect } from "@/components/custom/async-select";
-import { ObjectImageUpload, type ObjectImageBlob, type ObjectImageFile } from "@/components/custom/image-upload";
+import { SingleImageUpload } from "@/components/custom/image-upload";
 import { RichTextEditor } from "@/components/custom/rich-text-editor";
 import { Cascader } from "@/components/ui/cascader";
 import { Field, FieldError, FieldGroup, FieldLabel } from "@/components/ui/field";
@@ -15,24 +15,17 @@ import { productInfoSchema, type ProductInfo } from "@/lib/query-schema/product-
 import { useTRPC } from "@/trpc/client";
 import { buildProductCategoriesTree } from "@/utils/categories-tree";
 import { useQueryClient } from "@tanstack/react-query";
-import type React from "react";
+import Image from "next/image";
+import AddBrand from "../../../brands/button/add-brand";
 
 export function ProductInfoForm({
     onNext,
     defaultValues,
     categoriesData,
-    file,
-    blobPreview,
-    setFile,
-    setBlobPreview,
 }: {
     onNext: (data: ProductInfo) => void;
     defaultValues?: ProductInfo;
     categoriesData?: Category[];
-    file: ObjectImageFile[] | undefined;
-    blobPreview: ObjectImageBlob[] | null;
-    setFile: React.Dispatch<React.SetStateAction<ObjectImageFile[] | undefined>>;
-    setBlobPreview: React.Dispatch<React.SetStateAction<ObjectImageBlob[] | null>>;
 }) {
     const trpc = useTRPC();
     const queryClient = useQueryClient();
@@ -89,46 +82,53 @@ export function ProductInfoForm({
                         name={"brandId"}
                         control={form.control}
                         render={({ field, fieldState }) => (
-                            <Field data-invalid={fieldState.invalid}>
-                                <FieldLabel htmlFor="stepper-form-product-brand">Brand</FieldLabel>
-                                <AsyncSelect
-                                    fetcher={async query => {
-                                        return await queryClient.fetchQuery(
-                                            trpc.brand.getList.queryOptions({ search: query ?? "" }),
-                                        );
-                                    }}
-                                    value={field.value}
-                                    onChange={field.onChange}
-                                    placeholder="Select a brand..."
-                                    renderOption={option => (
-                                        <div className="flex items-center gap-2">
-                                            {option.logoUrl && (
-                                                <img
-                                                    src={option.logoUrl}
-                                                    alt={option.name}
-                                                    className="w-6 h-6 object-cover"
-                                                />
-                                            )}
-                                            <span>{option.name}</span>
-                                        </div>
-                                    )}
-                                    getOptionValue={option => option.id}
-                                    getDisplayValue={option => (
-                                        <div className="flex items-center gap-2">
-                                            {option.logoUrl && (
-                                                <img
-                                                    src={option.logoUrl}
-                                                    alt={option.name}
-                                                    className="w-6 h-6 rounded-full object-cover"
-                                                />
-                                            )}
-                                            <span>{option.name}</span>
-                                        </div>
-                                    )}
-                                    label="Brand"
-                                />
-                                {fieldState.invalid && <FieldError errors={[fieldState.error]} />}
-                            </Field>
+                            <div className="flex items-end gap-2">
+                                <Field data-invalid={fieldState.invalid}>
+                                    <FieldLabel htmlFor="stepper-form-product-brand">Brand</FieldLabel>
+                                    <AsyncSelect
+                                        fetcher={async query => {
+                                            return await queryClient.fetchQuery(
+                                                trpc.brand.getList.queryOptions({ search: query ?? "" }),
+                                            );
+                                        }}
+                                        value={field.value}
+                                        onChange={field.onChange}
+                                        placeholder="Select a brand..."
+                                        renderOption={option => (
+                                            <div className="flex items-center gap-2">
+                                                {option.logoUrl && (
+                                                    <Image
+                                                        width={30}
+                                                        height={30}
+                                                        src={option.logoUrl}
+                                                        alt={option.name}
+                                                        className="w-6 h-6 object-cover"
+                                                    />
+                                                )}
+                                                <span>{option.name}</span>
+                                            </div>
+                                        )}
+                                        getOptionValue={option => option.id}
+                                        getDisplayValue={option => (
+                                            <div className="flex items-center gap-2">
+                                                {option.logoUrl && (
+                                                    <Image
+                                                        width={30}
+                                                        height={30}
+                                                        src={option.logoUrl}
+                                                        alt={option.name}
+                                                        className="w-6 h-6 rounded-full object-cover"
+                                                    />
+                                                )}
+                                                <span>{option.name}</span>
+                                            </div>
+                                        )}
+                                        label="Brand"
+                                    />
+                                    {fieldState.invalid && <FieldError errors={[fieldState.error]} />}
+                                </Field>
+                                <AddBrand page="product" />
+                            </div>
                         )}
                     />
 
@@ -157,14 +157,11 @@ export function ProductInfoForm({
                         render={({ field, fieldState }) => (
                             <Field data-invalid={fieldState.invalid}>
                                 <FieldLabel htmlFor="stepper-form-product-image">Product Image [1:1 ratio]</FieldLabel>
-                                <ObjectImageUpload
-                                    className="h-75 w-75"
-                                    imageKey="product"
+                                <SingleImageUpload
+                                    onChange={field.onChange}
+                                    pathName="products/covers"
+                                    className="h-75! w-75! aspect-square"
                                     value={field.value}
-                                    file={file}
-                                    blobPreview={blobPreview}
-                                    setFile={setFile}
-                                    setBlobPreview={setBlobPreview}
                                     onRemove={() => form.setValue("imageUrl", "")}
                                 />
                                 {fieldState.invalid && <FieldError errors={[fieldState.error]} />}
